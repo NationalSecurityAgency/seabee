@@ -6,6 +6,7 @@ DOCKER_VERSION=24.0.7
 DOCKER="${DOCKER:=0}"
 USE_APT=0
 USE_DNF=0
+DISTRO="Unassigned"
 
 if [ "$EUID" -ne 0 ]; then
   printf "Please run this script as root or sudo\n"
@@ -23,10 +24,16 @@ os_check() {
   case $ID in
   ubuntu)
     USE_APT=1
+    DISTRO="ubuntu"
     ;;
-  fedora | rocky)
+  fedora)
     USE_DNF=1
-    ;;&
+    DISTRO="fedora"
+    ;;
+  rocky)
+    USE_DNF=1
+    DISTRO="rhel"
+    ;;
   *) ;;
   esac
 }
@@ -79,18 +86,18 @@ docker_install() {
     apt install --no-install-recommends -y ca-certificates gnupg
     install -m 0755 -d /etc/apt/keyrings
     curl_check
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    curl -fsSL https://download.docker.com/linux/"$DISTRO"/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
     chmod a+r /etc/apt/keyrings/docker.gpg
     # shellcheck disable=SC1091
     echo \
-      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/"$DISTRO" \
 			$(. /etc/os-release && echo "$VERSION_CODENAME") stable" |
       tee /etc/apt/sources.list.d/docker.list >/dev/null
     apt update
     apt install --no-install-recommends -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   elif [ $USE_DNF -eq 1 ]; then
     dnf -y install dnf-plugins-core
-    dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+    dnf config-manager --add-repo https://download.docker.com/linux/"$DISTRO"/docker-ce.repo
     dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     systemctl start docker
   else
