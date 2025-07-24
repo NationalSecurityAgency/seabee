@@ -1,0 +1,91 @@
+name: Publish Documentation
+on:
+  push:
+    branches:
+      - main
+permissions:
+  contents: write
+env:
+  SITE_URL: 'https://NationalSecurityAgency.github.io/seabee/'
+  REPO_URL: 'https://github.com/NationalSecurityAgency/seabee/'
+  EDIT_URI: 'edit/main/docs'
+  REPO_ICON: 'fontawesome/brands/github'
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Configure Git Credentials
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+
+      - name: Setup Python
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      #----------------------------------------------
+      #  -----  install & configure poetry  -----
+      #----------------------------------------------
+      - name: Load cached Poetry installation
+        id: cached-poetry
+        uses: actions/cache@v4
+        with:
+          path: ~/.local  # the path depends on the OS
+          key: poetry-0  # increment to reset cache
+      - name: Install Poetry
+        if: steps.cached-poetry.outputs.cache-hit != 'true'
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.3
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          virtualenvs-path: .venv
+          installer-parallel: true
+      #----------------------------------------------
+      #       load cached venv if cache exists
+      #----------------------------------------------
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+      #----------------------------------------------
+      # Install dependencies if cache does not exist
+      #----------------------------------------------
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+      #----------------------------------------------
+      # Build Doxygen documentation
+      #----------------------------------------------
+      - uses: mattnotmitt/doxygen-action@v1.11.0
+        with:
+          working-directory: 'docs/'
+      #----------------------------------------------
+      # Build Rust documentation
+      #----------------------------------------------
+      - name: Install Rust
+        run: rustup toolchain install 1.79 --profile minimal --component rust-docs
+      - uses: Swatinem/rust-cache@v2
+      - name: Delete previous docs if they exist
+        run: if [ -d docs/docs/assets/rust ]; then rm -r docs/docs/assets/rust; fi
+      - name: Install Linux dependencies for building crates
+        run: DOCKER=1 sudo scripts/update_root_dependencies.sh
+      - name: Build and copy Rust documentation to MkDocs folder
+        run: cargo doc --no-deps && cp -r target/doc docs/docs/assets/rust
+      #----------------------------------------------
+      # Build and deploy MkDocs to GitHub Pages
+      #----------------------------------------------
+      - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
+      - uses: actions/cache@v4
+        with:
+          key: mkdocs-material-${{ env.cache_id }}
+          path: ~/.cache
+          restore-keys: |
+            mkdocs-material-
+      - run: cd docs && poetry run mkdocs gh-deploy --force

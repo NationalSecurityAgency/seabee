@@ -1,13 +1,12 @@
-site_name: eBPF Security
+site_name: SeaBee - Security Enhanced Architecture for eBPF
 site_url: !ENV [SITE_URL]
 repo_name: !ENV [REPO_NAME]
 repo_url: !ENV [REPO_URL]
 edit_uri: !ENV [EDIT_URI, "-/edit/main/docs/"]
 theme:
   name: material
-  custom_dir: overrides
   icon:
-    repo: fontawesome/brands/gitlab
+    repo: !ENV [REPO_ICON, "fontawesome/brands/gitlab"]
   features:
     - !ENV [VIEW_BTN, "content.action.edit"]
     - content.code.copy
@@ -40,8 +39,6 @@ theme:
       toggle:
         icon: material/brightness-4
         name: Switch to system preference
-watch:
-  - overrides
 markdown_extensions:
   - abbr
   - attr_list
@@ -69,9 +66,5 @@ plugins:
             htmlmin_opts:
               remove_comments: true
             cache_safe: true
-            css_files:
-              - _static/css/class.css
   - asciinema-player
   - search
-extra_css:
-  - _static/css/class.css
