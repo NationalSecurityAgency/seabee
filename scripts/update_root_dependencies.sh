@@ -33,6 +33,9 @@ os_check() {
   rocky)
     USE_DNF=1
     DISTRO="rhel"
+    # Install EPEL
+    # https://www.redhat.com/en/blog/whats-epel-and-how-do-i-use-it
+    dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
     ;;
   *) ;;
   esac
@@ -40,26 +43,26 @@ os_check() {
 
 install_system_packages() {
   printf "Installing tools and libraries needed for development\n"
+  # Warning: if one of 'common_deps' fails to install, they all fail to install
   local common_deps
   common_deps=(clang pipx python3 python3-pip strace)
   # depedencies necessary to build static libraries for libelf and zlib
   # which are dependencies of libbpf which is also built statically
+  # openssl dependencies are also included
   local library_deps library_deps_deb library_deps_dnf
   library_deps=(autoconf automake bison flex gawk)
-  library_deps_deb=("${library_deps[@]}" autopoint pkg-config)
-  library_deps_dnf=("${library_deps[@]}" gettext-devel)
+  library_deps_deb=("${library_deps[@]}" autopoint pkg-config perl)
+  library_deps_dnf=("${library_deps[@]}" gettext-devel perl-core)
   if [ $USE_APT -eq 1 ]; then
     apt update
     apt install --no-install-recommends -y \
       "${common_deps[@]}" \
-      "${library_deps_deb[@]}" \
-      perl
+      "${library_deps_deb[@]}"
   elif [ $USE_DNF -eq 1 ]; then
     dnf update -y
     dnf install \
       "${common_deps[@]}" \
-      "${library_deps_dnf[@]}" \
-      perl-core
+      "${library_deps_dnf[@]}"
   else
     printf "Your OS was not detected. Dependencies may not be installed.\n"
   fi

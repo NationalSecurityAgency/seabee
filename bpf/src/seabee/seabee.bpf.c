@@ -427,7 +427,7 @@ SEC("lsm/kernel_read_file")
 int BPF_PROG(seabee_kernel_read_file, struct file *file,
              enum kernel_read_file_id id, bool contents)
 {
-	if (id == LOADING_MODULE) {
+	if (id == READING_MODULE) {
 		log_kernel_read_file(LOG_LEVEL_WARN, LOG_REASON_DENY, id,
 		                     file->f_path.dentry->d_name.name);
 		return DENY;

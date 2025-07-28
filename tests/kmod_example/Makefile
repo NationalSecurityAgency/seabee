@@ -22,6 +22,7 @@ $(KMOD_COMPRESSED): $(KMOD_PATH)
 	@-sudo chcon -t modules_object_t $(KMOD_COMPRESSED)
 	@sudo depmod
 
+# If this rule fails, try rebooting
 $(KMOD_PATH): $(KMOD_NAME).c
 	@sudo make -C $(KMOD_BUILD) M=$$PWD modules
 	@sudo make -C $(KMOD_BUILD) M=$$PWD modules_install INSTALL_MOD_DIR=$(INSTALL_MOD_DIR)
