@@ -4,7 +4,7 @@ use std::process::{Child, Command};
 
 use anyhow::{anyhow, Result};
 use libtest_mimic::{Failed, Trial};
-use seabee::utils;
+use seabee::{constants::SEABEECTL_EXE, utils};
 use serde::Deserialize;
 
 use crate::{command::TestCommandBuilder, create_test};
@@ -32,13 +32,13 @@ const TEST_PROG_NAME: &str = "test_seabee";
 
 pub fn start_test_tool() -> Result<Child> {
     // add key
-    Command::new("seabeectl")
+    Command::new(SEABEECTL_EXE)
         .args(["add-key", "-t", &utils::str_to_abs_path(RSA_PUB)?])
         .stdout(std::process::Stdio::null())
         .status()?;
 
     // add policy
-    Command::new("seabeectl")
+    Command::new(SEABEECTL_EXE)
         .args([
             "update",
             "-t",
@@ -72,11 +72,11 @@ pub fn stop_test_tool(child: Child) -> Result<()> {
     }
 
     // cleanup seabee
-    Command::new("seabeectl")
+    Command::new(SEABEECTL_EXE)
         .args(["clean", "policy"])
         .stdout(std::process::Stdio::null())
         .status()?;
-    Command::new("seabeectl")
+    Command::new(SEABEECTL_EXE)
         .args(["clean", "keys"])
         .stdout(std::process::Stdio::null())
         .status()?;

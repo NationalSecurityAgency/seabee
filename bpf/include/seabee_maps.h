@@ -5,8 +5,8 @@
  * @file seabee_maps.h
  */
 
-#include "vmlinux.h"
-#include "bpf/bpf_helpers.h"
+#include <bpf/vmlinux.h>
+#include <bpf/bpf_helpers.h>
 #include "shared_rust_types.h"
 
 struct seabee_task_data {

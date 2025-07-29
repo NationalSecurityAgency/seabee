@@ -5,8 +5,8 @@
  * @file seabee_utils.h
  */
 
-#include "vmlinux.h"
-#include "bpf/bpf_helpers.h"
+#include <bpf/vmlinux.h>
+#include <bpf/bpf_helpers.h>
 
 #include "seabee_maps.h"
 #include "shared_rust_types.h"
