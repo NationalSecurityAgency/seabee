@@ -5,8 +5,8 @@
  * @file logging.h
  */
 
-#include "vmlinux.h"
-#include "bpf/bpf_helpers.h"
+#include <bpf/vmlinux.h>
+#include <bpf/bpf_helpers.h>
 
 #include "logging_types.h"
 #include "shared_rust_types.h"

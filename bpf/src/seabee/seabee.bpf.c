@@ -3,11 +3,11 @@
  * @file seabee.bpf.c
  */
 
-#include "vmlinux.h"
+#include <bpf/vmlinux.h>
+#include <bpf/vmlinux_features.h>
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
 #include <bpf/bpf_core_read.h>
-#include <linux/version.h>
 
 #include "logging.h"
 #include "logging_types.h"
@@ -427,7 +427,7 @@ SEC("lsm/kernel_read_file")
 int BPF_PROG(seabee_kernel_read_file, struct file *file,
              enum kernel_read_file_id id, bool contents)
 {
-	if (id == LOADING_MODULE) {
+	if (id == READING_MODULE) {
 		log_kernel_read_file(LOG_LEVEL_WARN, LOG_REASON_DENY, id,
 		                     file->f_path.dentry->d_name.name);
 		return DENY;
@@ -627,6 +627,7 @@ int BPF_PROG(seabee_label_process, struct linux_binprm *bprm, int ret)
 	}
 
 	// Label task if path is in scope
+	// TODO: this does not account for symbolic links, see https://github.com/NationalSecurityAgency/seabee/issues/12
 	u32 *policy_id = bpf_map_lookup_elem(&path_to_pol_id, path);
 	if (policy_id) {
 		struct task_struct *task = get_task();
@@ -651,7 +652,8 @@ int BPF_PROG(seabee_label_child_process, struct task_struct *child_task,
 	return ALLOW;
 }
 
-#if BPF_CODE_VERSION >= KERNEL_VERSION(6, 9, 0)
+// defined in vmlinux_features.h
+#ifdef HAS_BPF_MAP_CREATE
 /**
  * @brief Label an eBPF map on creation using the same label as the process that
  * created it

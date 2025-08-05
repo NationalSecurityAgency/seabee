@@ -6,6 +6,7 @@ DOCKER_VERSION=24.0.7
 DOCKER="${DOCKER:=0}"
 USE_APT=0
 USE_DNF=0
+DISTRO="Unassigned"
 
 if [ "$EUID" -ne 0 ]; then
   printf "Please run this script as root or sudo\n"
@@ -23,36 +24,45 @@ os_check() {
   case $ID in
   ubuntu)
     USE_APT=1
+    DISTRO="ubuntu"
     ;;
-  fedora | rocky)
+  fedora)
     USE_DNF=1
-    ;;&
+    DISTRO="fedora"
+    ;;
+  rocky)
+    USE_DNF=1
+    DISTRO="rhel"
+    # Install EPEL
+    # https://www.redhat.com/en/blog/whats-epel-and-how-do-i-use-it
+    dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+    ;;
   *) ;;
   esac
 }
 
 install_system_packages() {
   printf "Installing tools and libraries needed for development\n"
+  # Warning: if one of 'common_deps' fails to install, they all fail to install
   local common_deps
   common_deps=(clang pipx python3 python3-pip strace)
   # depedencies necessary to build static libraries for libelf and zlib
   # which are dependencies of libbpf which is also built statically
+  # openssl dependencies are also included
   local library_deps library_deps_deb library_deps_dnf
   library_deps=(autoconf automake bison flex gawk)
-  library_deps_deb=("${library_deps[@]}" autopoint pkg-config)
-  library_deps_dnf=("${library_deps[@]}" gettext-devel)
+  library_deps_deb=("${library_deps[@]}" autopoint pkg-config perl)
+  library_deps_dnf=("${library_deps[@]}" gettext-devel perl-core)
   if [ $USE_APT -eq 1 ]; then
     apt update
     apt install --no-install-recommends -y \
       "${common_deps[@]}" \
-      "${library_deps_deb[@]}" \
-      perl
+      "${library_deps_deb[@]}"
   elif [ $USE_DNF -eq 1 ]; then
     dnf update -y
     dnf install \
       "${common_deps[@]}" \
-      "${library_deps_dnf[@]}" \
-      perl-core
+      "${library_deps_dnf[@]}"
   else
     printf "Your OS was not detected. Dependencies may not be installed.\n"
   fi
@@ -79,18 +89,18 @@ docker_install() {
     apt install --no-install-recommends -y ca-certificates gnupg
     install -m 0755 -d /etc/apt/keyrings
     curl_check
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    curl -fsSL https://download.docker.com/linux/"$DISTRO"/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
     chmod a+r /etc/apt/keyrings/docker.gpg
     # shellcheck disable=SC1091
     echo \
-      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$DISTRO \
 			$(. /etc/os-release && echo "$VERSION_CODENAME") stable" |
       tee /etc/apt/sources.list.d/docker.list >/dev/null
     apt update
     apt install --no-install-recommends -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   elif [ $USE_DNF -eq 1 ]; then
     dnf -y install dnf-plugins-core
-    dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+    dnf config-manager --add-repo https://download.docker.com/linux/"$DISTRO"/docker-ce.repo
     dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     systemctl start docker
   else

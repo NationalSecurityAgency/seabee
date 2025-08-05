@@ -6,12 +6,14 @@ use libbpf_rs::{
     skel::{OpenSkel, Skel, SkelBuilder},
     OpenObject,
 };
-use procfs::KernelVersion;
-use tracing::{debug, info};
+use tracing::info;
 
 use crate::{
-    cli::SecurityLevel, config::Config, constants, edit_seabee_skel, kernel_api,
-    policy::policy_file::BASE_POLICY_ID, policy::SeaBeePolicy, SeaBee, SeaBeeMapHandles,
+    cli::SecurityLevel,
+    config::Config,
+    constants, kernel_api,
+    policy::{policy_file::BASE_POLICY_ID, SeaBeePolicy},
+    utils, SeaBee, SeaBeeMapHandles,
 };
 use bpf::{common::get_map, seabee};
 
@@ -22,23 +24,6 @@ fn dev_id(path: &str) -> Result<DeviceNumber> {
     Ok(nix::sys::stat::stat(path)?.st_dev)
 }
 
-fn get_seabee_skel<'a>(
-    config: &Config,
-    skel_object: &'a mut MaybeUninit<OpenObject>,
-) -> Result<Box<dyn Skel<'a> + 'a>> {
-    let kernel_version = KernelVersion::current()?;
-    debug!("Detected kernel version {:?}", kernel_version);
-
-    let seabee_skel: Box<dyn Skel> = if kernel_version >= KernelVersion::new(6, 9, 0) {
-        edit_seabee_skel!(seabee_6_9_0, skel_object, config)
-    } else if kernel_version >= KernelVersion::new(6, 1, 0) {
-        edit_seabee_skel!(seabee_6_1_0, skel_object, config)
-    } else {
-        edit_seabee_skel!(seabee_5_14_0, skel_object, config)
-    };
-    Ok(seabee_skel)
-}
-
 /// Load enforcing eBPF programs in the desired configuration.
 /// This includes all programs that use LSM to make access control decisions.
 pub fn load_ebpf(
@@ -47,7 +32,7 @@ pub fn load_ebpf(
     open_obj: &mut MaybeUninit<OpenObject>,
 ) -> Result<SeaBee> {
     // Build and load skeleton
-    let mut skel = get_seabee_skel(&config, open_obj)?;
+    let mut skel = edit_seabee_skel(&config, open_obj)?;
 
     let maps = SeaBeeMapHandles {
         inode_storage: get_map("inode_storage", &*skel)?,
@@ -94,44 +79,43 @@ pub fn load_ebpf(
 }
 
 /// Reduce editing boilerplate when adding new skeletons
-#[macro_export]
-macro_rules! edit_seabee_skel {
-    ($builder:ident, $obj:ident, $config:ident) => {{
-        let mut open_skel = seabee::$builder::SeabeeSkelBuilder::default().open($obj)?;
-
-        open_skel.maps.bss_data.my_pid = std::process::id();
-        open_skel.maps.bss_data.sigmask = $crate::utils::generate_sigmask($config.sigint);
-        open_skel.maps.bss_data.bpf_dev_id = dev_id(constants::BPF_PATH)?;
-        open_skel.maps.bss_data.sys_dev_id = dev_id(constants::SYS_PATH)?;
-        // Set which level of logs will be printed
-        open_skel.maps.bss_data.log_level = $config.log_level as u32;
-        open_skel.maps.bss_data.kmod_modification = $config.kmod as u32;
-        open_skel
-            .maps
-            .map_to_pol_id
-            .set_max_entries($crate::constants::SEABEE_MAX_MAPS)
-            .context(format!(
-                "Couldn't set max protected map entries to {}",
-                $crate::constants::SEABEE_MAX_MAPS
-            ))?;
-        open_skel
-            .maps
-            .policy_map
-            .set_max_entries($crate::constants::SEABEE_MAX_POLICIES)
-            .context(format!(
-                "Couldn't set max pids entries to {}",
-                $crate::constants::SEABEE_MAX_POLICIES
-            ))?;
-        open_skel
-            .maps
-            .path_to_pol_id
-            .set_max_entries($crate::constants::SEABEE_MAX_POLICY_SCOPES)
-            .context(format!(
-                "Couldn't set max pids entries to {}",
-                $crate::constants::SEABEE_MAX_POLICY_SCOPES
-            ))?;
-        Box::new(open_skel.load()?)
-    }};
+fn edit_seabee_skel<'a>(
+    config: &Config,
+    open_obj: &'a mut MaybeUninit<OpenObject>,
+) -> Result<Box<dyn Skel<'a> + 'a>> {
+    let mut open_skel = seabee::SeabeeSkelBuilder::default().open(open_obj)?;
+    open_skel.maps.bss_data.my_pid = std::process::id();
+    open_skel.maps.bss_data.sigmask = utils::generate_sigmask(config.sigint);
+    open_skel.maps.bss_data.bpf_dev_id = dev_id(constants::BPF_PATH)?;
+    open_skel.maps.bss_data.sys_dev_id = dev_id(constants::SYS_PATH)?;
+    // Set which level of logs will be printed
+    open_skel.maps.bss_data.log_level = config.log_level as u32;
+    open_skel.maps.bss_data.kmod_modification = config.kmod as u32;
+    open_skel
+        .maps
+        .map_to_pol_id
+        .set_max_entries(constants::SEABEE_MAX_MAPS)
+        .context(format!(
+            "Couldn't set max protected map entries to {}",
+            constants::SEABEE_MAX_MAPS
+        ))?;
+    open_skel
+        .maps
+        .policy_map
+        .set_max_entries(constants::SEABEE_MAX_POLICIES)
+        .context(format!(
+            "Couldn't set max pids entries to {}",
+            constants::SEABEE_MAX_POLICIES
+        ))?;
+    open_skel
+        .maps
+        .path_to_pol_id
+        .set_max_entries(constants::SEABEE_MAX_POLICY_SCOPES)
+        .context(format!(
+            "Couldn't set max pids entries to {}",
+            constants::SEABEE_MAX_POLICY_SCOPES
+        ))?;
+    Ok(Box::new(open_skel.load()?))
 }
 
 /// Used to prevent some eBPF programs from loading if they are unecessary based on the config.

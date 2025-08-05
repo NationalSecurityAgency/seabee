@@ -23,4 +23,3 @@ bindgen = { version = "0.69", default-features = false, features = ["runtime"] }
 doxygen-rs = "0.4"
 libbpf-rs.workspace = true
 libbpf-cargo = { version = "0.25.0-beta.1", default-features = false}
-procfs.workspace = true

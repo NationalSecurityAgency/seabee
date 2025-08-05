@@ -7,7 +7,7 @@ use std::{
 
 use anyhow::{anyhow, Result};
 use libtest_mimic::{Arguments, Failed, Trial};
-use seabee::constants;
+use seabee::constants::{self, SEABEECTL_EXE};
 
 mod daemon_status;
 mod protect_tool;
@@ -54,7 +54,7 @@ fn start_daemon() -> Result<()> {
 
 /// Uses "seabeectl list" to determine if seabee is ready
 fn daemon_is_ready() -> Result<bool> {
-    let status = Command::new("seabeectl")
+    let status = Command::new(SEABEECTL_EXE)
         .arg("list")
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -73,7 +73,7 @@ fn stop_daemon() -> Result<()> {
 }
 
 fn update_config(path: &str) -> Result<()> {
-    let status = Command::new("seabeectl")
+    let status = Command::new(SEABEECTL_EXE)
         .args(["config", "update", path])
         .stdout(Stdio::null())
         .status()?;
@@ -87,7 +87,7 @@ fn update_config(path: &str) -> Result<()> {
 }
 
 fn remove_config() -> Result<()> {
-    let status = Command::new("seabeectl")
+    let status = Command::new(SEABEECTL_EXE)
         .args(["config", "remove"])
         .stdout(Stdio::null())
         .status()?;
@@ -101,7 +101,7 @@ fn remove_config() -> Result<()> {
 }
 
 fn seabeectl_clean_keys_policies() -> Result<()> {
-    let status = Command::new("seabeectl")
+    let status = Command::new(SEABEECTL_EXE)
         .args(["clean", "policy"])
         .stdout(Stdio::null())
         .status()?;
@@ -111,7 +111,7 @@ fn seabeectl_clean_keys_policies() -> Result<()> {
             status
         ));
     }
-    let status = Command::new("seabeectl")
+    let status = Command::new(SEABEECTL_EXE)
         .args(["clean", "keys"])
         .stdout(Stdio::null())
         .status()?;

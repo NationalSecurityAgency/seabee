@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
-use std::env;
-use std::fs;
+use std::collections::HashSet;
+use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
+use std::{env, fs};
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use libbpf_cargo::SkeletonBuilder;
-use procfs::KernelVersion;
+
+const VMLINUX_FEATURES: [&str; 2] = ["bpf_map_create", "bpf_map_alloc_security"];
 
 /// Tells Cargo to rerun the build if the supplied file has changed
 fn track_file(header: &str) {
@@ -13,20 +16,13 @@ fn track_file(header: &str) {
 }
 
 /// Converts a BPF source code path to a skeleton path for [libbpf_rs]
-fn get_skel_path(src_file: &Path, version: Option<&KernelVersion>) -> String {
+fn get_skel_path(src_file: &Path) -> PathBuf {
     if let Some(bpf) = src_file.file_stem() {
         if let Some(stem) = Path::new(bpf).file_stem() {
-            let mut skel_path = String::new();
-            skel_path.push_str(&stem.to_string_lossy());
-            // if a kernel version is specified, add that at the end of the name
-            if let Some(version) = version {
-                skel_path.push_str(&format!(
-                    "_{}_{}_{}",
-                    version.major, version.minor, version.patch
-                ));
-            }
-            skel_path.push_str(".skel.rs");
-            return skel_path;
+            let mut skel = PathBuf::new();
+            skel.push(stem);
+            skel.set_extension("skel.rs");
+            return skel;
         }
     }
     panic!(
@@ -35,53 +31,14 @@ fn get_skel_path(src_file: &Path, version: Option<&KernelVersion>) -> String {
     );
 }
 
-/// Converts [KernelVersion] to BPF_CODE_VERSION to be compared against the
-/// `KERNEL_VERSION` macro for conditional compilation
-pub fn kernel_version_to_bpf_code_version(version: &KernelVersion) -> u32 {
-    ((version.major as u32) << 16)
-        + ((version.minor as u32) << 8)
-        + std::cmp::max(version.patch as u32, 255)
-}
-
 /// Uses [libbpf_cargo::SkeletonBuilder] to compile BPF source code to a skeleton
-fn compile_bpf_obj(
-    src_file: &PathBuf,
-    out_path: &Path,
-    versions: Option<&[KernelVersion]>,
-) -> Result<()> {
-    let mut clang_args: Vec<String> = vec![
-        "-Iinclude".to_string(),
-        format!("-I{}", out_path.to_string_lossy()),
-    ];
-    let mut skel_build = SkeletonBuilder::new();
-    skel_build.source(src_file);
-    // if multiple versions are specified
-    if let Some(versions) = versions {
-        // compile the default case (every version before the first specified)
-        clang_args.push("-DBPF_CODE_VERSION=0".to_owned());
-        skel_build
-            .clang_args(&clang_args)
-            .build_and_generate(out_path.join(get_skel_path(src_file, None)))?;
-        clang_args.pop();
-        // compile each version of the skeleton separately
-        for version in versions {
-            clang_args.push(format!(
-                "-DBPF_CODE_VERSION={}",
-                kernel_version_to_bpf_code_version(version)
-            ));
-            skel_build
-                .clang_args(&clang_args)
-                .build_and_generate(out_path.join(get_skel_path(src_file, Some(version))))?;
-            clang_args.pop();
-        }
-    }
-    // otherwise, assume all versions are supported with the same skeleton
-    else {
-        skel_build
-            .clang_args(&clang_args)
-            .build_and_generate(out_path.join(get_skel_path(src_file, None)))?;
-    }
-    Ok(())
+fn compile_bpf_obj(src_file: &PathBuf, out_path: &Path) -> Result<PathBuf> {
+    let bpf_skel_path = out_path.join(get_skel_path(src_file));
+    SkeletonBuilder::new()
+        .source(src_file)
+        .clang_args([&format!("-I{}", out_path.to_string_lossy()), "-Iinclude"])
+        .build_and_generate(&bpf_skel_path)?;
+    Ok(bpf_skel_path)
 }
 
 #[derive(Debug)]
@@ -148,14 +105,11 @@ fn generate_header_bindings(hdr_file: &Path, out_path: &Path) -> Result<PathBuf>
 ///
 /// Copied from https://github.com/libbpf/libbpf-rs/blob/aacaec1b7dfaa4bf9112d2f4168d77dfceee499f/libbpf-cargo/src/build.rs#L55
 fn extract_libbpf_headers_to_disk(target_dir: &Path) -> Result<Option<PathBuf>> {
-    use std::fs::OpenOptions;
-    use std::io::Write;
-
     let dir = target_dir.join("bpf");
     fs::create_dir_all(&dir)?;
     for (filename, contents) in libbpf_rs::libbpf_sys::API_HEADERS.iter() {
         let path = dir.as_path().join(filename);
-        let mut file = OpenOptions::new()
+        let mut file = fs::OpenOptions::new()
             .write(true)
             .create(true)
             .truncate(true)
@@ -170,12 +124,7 @@ fn extract_libbpf_headers_to_disk(target_dir: &Path) -> Result<Option<PathBuf>> 
 ///
 /// You can pass a vector of filenames to explicitly ignore if they are known to cause
 /// problems for either Clang or bindgen (e.g. "vmlinux.h")
-fn build(
-    out_path: &Path,
-    base_path: &str,
-    ignore_files: Vec<&str>,
-    versions: Option<&[KernelVersion]>,
-) -> Result<()> {
+fn build(out_path: &Path, base_path: &str, ignore_files: Vec<&str>) -> Result<()> {
     for path in fs::read_dir(base_path)?
         .filter_map(|r| r.ok())
         .map(|r| r.path())
@@ -189,7 +138,7 @@ fn build(
             continue;
         }
         if path_str.ends_with(".bpf.c") {
-            compile_bpf_obj(&path, out_path, versions)?;
+            compile_bpf_obj(&path, out_path)?;
         }
         if path_str.ends_with(".h") {
             generate_header_bindings(&path, out_path)?;
@@ -198,31 +147,97 @@ fn build(
     Ok(())
 }
 
+// Creates vmlinux (truncates if exists)
+fn generate_vmlinux(out_path: &Path) -> Result<PathBuf> {
+    let vmlinux_path = out_path.join("bpf/vmlinux.h");
+    let vmlinux_file = fs::File::create(&vmlinux_path)?;
+    // bpftool is installed in the update_test_dependencies.sh which
+    // is run as part of the update_root_dependencies.sh
+    let status = Command::new("bpftool")
+        .args([
+            "btf",
+            "dump",
+            "file",
+            "/sys/kernel/btf/vmlinux",
+            "format",
+            "c",
+        ])
+        .stdout(Stdio::from(vmlinux_file))
+        .status()?;
+    if !status.success() {
+        return Err(anyhow!(
+            "failed to generate vmlinux using bpftool: {}",
+            status
+        ));
+    }
+
+    Ok(vmlinux_path)
+}
+
+fn detect_vmlinux_features(vmlinux: &PathBuf) -> Result<HashSet<String>> {
+    // detect features
+    let file = fs::File::open(vmlinux)?;
+    let reader = BufReader::new(file);
+    let mut found = HashSet::new();
+    for line in reader.lines() {
+        let line = line?;
+        for feat in VMLINUX_FEATURES {
+            if line.contains(feat) {
+                found.insert(feat.to_string());
+            }
+        }
+    }
+
+    // validate features
+    if found.contains(VMLINUX_FEATURES[0]) && found.contains(VMLINUX_FEATURES[1]) {
+        return Err(anyhow!(
+            "Conflicting function definitions: '{}' and '{}'",
+            VMLINUX_FEATURES[0],
+            VMLINUX_FEATURES[1]
+        ));
+    } else if !found.contains(VMLINUX_FEATURES[0]) && !found.contains(VMLINUX_FEATURES[1]) {
+        return Err(anyhow!(
+            "Kernel no supported. No function definition found for '{}' or '{}'",
+            VMLINUX_FEATURES[0],
+            VMLINUX_FEATURES[1]
+        ));
+    }
+
+    Ok(found)
+}
+
+fn export_features_to_header(features: HashSet<String>, out_path: &Path) -> Result<()> {
+    let vmlinux_features_path = out_path.join("bpf/vmlinux_features.h");
+    let mut f = fs::File::create(vmlinux_features_path)?;
+
+    writeln!(f, "// Auto-generated header from build.rs")?;
+
+    for flag in features {
+        let macro_name = flag.to_uppercase();
+        writeln!(f, "#define HAS_{}", macro_name)?;
+    }
+
+    Ok(())
+}
+
 fn main() -> Result<()> {
     let out_path = PathBuf::from(env::var_os("OUT_DIR").context("OUT_DIR must be set")?);
     extract_libbpf_headers_to_disk(&out_path)?;
+    // Create vmlinux and do feature detection based on it
+    let vmlinux =
+        generate_vmlinux(&out_path).map_err(|e| anyhow!("failed to generate vmlinux.h: {e}"))?;
+    let features = detect_vmlinux_features(&vmlinux)?;
+    export_features_to_header(features, &out_path)?;
+
     // Build common
     build(
         &out_path,
         "include",
-        vec![
-            "logging.h",
-            "vmlinux.h",
-            "vmlinux_6_0_18.h",
-            "vmlinux_6_11_4.h",
-            "seabee_maps.h",
-            "seabee_utils.h",
-        ],
-        None,
+        vec!["logging.h", "seabee_maps.h", "seabee_utils.h"],
     )?;
     // Build bpf code
-    build(
-        &out_path,
-        "src/seabee",
-        vec!["seabee_log.h"],
-        Some(&[KernelVersion::new(6, 1, 0), KernelVersion::new(6, 9, 0)]),
-    )?;
-    build(&out_path, "src/kernel_api", vec![], None)?;
-    build(&out_path, "src/tests", vec![], None)?;
+    build(&out_path, "src/seabee", vec!["seabee_log.h"])?;
+    build(&out_path, "src/kernel_api", vec![])?;
+    build(&out_path, "src/tests", vec![])?;
     Ok(())
 }

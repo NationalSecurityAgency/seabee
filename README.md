@@ -95,7 +95,12 @@ To run as systemd daemon or service
 
 ### Test
 
-* To run the full test suite: `make test`
+Before running tests
+
+* create a root key
+* run `make install`
+
+run full test suite: `make test`
 
 ### Docs
 
