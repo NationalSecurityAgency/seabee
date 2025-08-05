@@ -20,6 +20,8 @@ instructions:
     command: file target/release/seabee
   - !Command
     command: ldd target/release/seabee
+  - !Command
+    command: "# Press spacebar or hit the play button to continue..."
 
   - !Marker CLI Options
   - !Clear
@@ -27,6 +29,8 @@ instructions:
     command: "# Print out the help menu"
   - !Command
     command: target/release/seabee -h
+  - !Command
+    command: "# Press spacebar or hit the play button to continue..."
 
   - !Marker systemd service
   - !Clear
@@ -34,6 +38,8 @@ instructions:
     command: "# Look at the systemd service file"
   - !Command
     command: cat /etc/systemd/system/seabee.service
+  - !Command
+    command: "# Press spacebar or hit the play button to continue..."
 
   - !Marker systemctl status
   - !Clear
@@ -41,6 +47,8 @@ instructions:
     command: "# Look at the status of the systemd service"
   - !Command
     command: systemctl status -n 0 --no-pager seabee
+  - !Command
+    command: "# Press spacebar or hit the play button to continue..."
 
   - !Marker journald
   - !Clear
@@ -49,6 +57,8 @@ instructions:
   - !Command
     command: journalctl --no-hostname --no-pager -n 12 -u seabee --output cat
     type_speed: 50ms
+  - !Command
+    command: "# Press spacebar or hit the play button to continue..."
 
   - !Marker pstree
   - !Clear
@@ -59,6 +69,8 @@ instructions:
     type_speed: 50ms
   - !Command
     command: pstree -ps $PID
+  - !Command
+    command: "# Press spacebar or hit the play button to continue..."
 
   - !Marker bpftool progs
   - !Clear
@@ -67,6 +79,8 @@ instructions:
   - !Command
     command: "sudo bpftool prog list -j | jq --argjson PID \"$PID\" '.[] | select(.pids[0].pid == $PID) | .name'"
     type_speed: 50ms
+  - !Command
+    command: "# Press spacebar or hit the play button to continue..."
 
   - !Marker bpffs mount protection
   - !Clear
@@ -83,6 +97,8 @@ instructions:
   - !Command
     command: journalctl --no-hostname --no-pager -n 20 -u seabee --output cat | grep umount
     type_speed: 50ms
+  - !Command
+    command: "# Press spacebar or hit the play button to continue..."
 
   - !Marker pin protection
   - !Clear
@@ -97,7 +113,8 @@ instructions:
   - !Command
     command: journalctl --no-hostname --no-pager -n 20 -u seabee --output cat | grep rm
     type_speed: 50ms
-
+  - !Command
+    command: "# Press spacebar or hit the play button to continue..."
 
   - !Marker ptrace protection
   - !Clear
@@ -108,6 +125,8 @@ instructions:
   - !Command
     command: journalctl --no-hostname --no-pager -n 20 -u seabee --output cat | grep strace
     type_speed: 50ms
+  - !Command
+    command: "# Press spacebar or hit the play button to continue..."
 
   - !Marker kill protection
   - !Clear
@@ -118,3 +137,5 @@ instructions:
   - !Command
     command: journalctl --no-hostname --no-pager -n 20 -u seabee --output cat | grep kill
     type_speed: 50ms
+  - !Command
+    command: "# Press spacebar or hit the play button to continue..."

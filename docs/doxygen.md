@@ -1,3 +1,5 @@
 # Welcome
 
-The documentation can be accessed from [here](seabee_8bpf_8c.html).
+The Doxygen documentation is contained [here](seabee_8bpf_8c.html).
+
+The Rust and Markdown documentation is contained [here](../../index.html).
