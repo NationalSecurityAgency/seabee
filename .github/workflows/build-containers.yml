@@ -2,6 +2,7 @@
 name: Build and Push Containers
 
 on:
+  push: # run on every push for testing. Comment out this line before merging.
   schedule:
     - cron: '11 11 * * 6'  # Choosing an random non-peak time: every Saturday at 11:11 UTC
   workflow_dispatch:

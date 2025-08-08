@@ -7,9 +7,6 @@ on:
   pull_request:
     branches: [main]
 
-permissions:
-  packages: read
-
 jobs:
   test-build:
     runs-on: ubuntu-latest
@@ -24,9 +21,6 @@ jobs:
 
     container:
       image: ghcr.io/nationalsecurityagency/seabee-build-${{ matrix.distro }}:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout source code
