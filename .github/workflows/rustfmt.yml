@@ -1,0 +1,20 @@
+---
+name: rustfmt
+
+on:
+  push:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    container:
+      # This could be optimized to use a smaller image
+      image: ghcr.io/nationalsecurityagency/seabee:build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check formatting
+        run: cargo fmt -- --check

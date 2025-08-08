@@ -12,7 +12,7 @@ use super::FunctionalTestSuite;
 use crate::{create_test, suite::TestSuite};
 
 fn map_err(map_name: &str) -> Result<(), Failed> {
-    Err(format!("The `{}` map does not exist in Linux", map_name).into())
+    Err(format!("The `{map_name}` map does not exist in Linux").into())
 }
 
 /// Tests that the total number of maps we expect are present
@@ -24,16 +24,14 @@ fn functional_map_total_num() -> Result<(), Failed> {
     // Test that the expected map counts from Linux is correct
     if gt_len != bt_len {
         return Err(format!(
-            "Number of maps in ground truth ({}) and linux ({}) don't match",
-            gt_len, bt_len
+            "Number of maps in ground truth ({gt_len}) and linux ({bt_len}) don't match"
         )
         .into());
     }
     // Test that the expected map counts from the Rust userspace is correct
     if gt_len != rust_len {
         return Err(format!(
-            "Number of maps in ground truth ({}) and rust ({}) don't match",
-            gt_len, rust_len
+            "Number of maps in ground truth ({gt_len}) and rust ({rust_len}) don't match"
         )
         .into());
     }

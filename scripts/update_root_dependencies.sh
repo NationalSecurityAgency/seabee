@@ -21,7 +21,7 @@ version_greater_equal() {
 os_check() {
   ID=$(grep "^ID=" /etc/os-release | cut -d= -f2 | tr -d "\"")
   case $ID in
-  ubuntu)
+  ubuntu | debian)
     USE_APT=1
     ;;
   fedora | rocky)
@@ -34,7 +34,7 @@ os_check() {
 install_system_packages() {
   printf "Installing tools and libraries needed for development\n"
   local common_deps
-  common_deps=(clang pipx python3 python3-pip strace)
+  common_deps=(clang make pipx python3 python3-pip strace)
   # depedencies necessary to build static libraries for libelf and zlib
   # which are dependencies of libbpf which is also built statically
   local library_deps library_deps_deb library_deps_dnf

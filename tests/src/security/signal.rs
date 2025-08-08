@@ -13,9 +13,9 @@ use super::SeaBeeSecurityTestSuite;
 fn try_kill(signal: i32, expect_success: bool) -> Result<(), Failed> {
     let res = unsafe { libc::kill(libc::getpid(), signal) };
     if res == 0 && !expect_success {
-        Err(format!("Signal {:?} should not have succeeded: {}", signal, res).into())
+        Err(format!("Signal {signal:?} should not have succeeded: {res}").into())
     } else if res != 0 && expect_success {
-        Err(format!("Signal {:?} should not have failed: {}", signal, res).into())
+        Err(format!("Signal {signal:?} should not have failed: {res}").into())
     } else {
         Ok(())
     }

@@ -79,7 +79,7 @@ pub fn list_policies(count: u32) -> Result<(), Failed> {
     let stdout = if count == 1 {
         "1 SeaBee Policy"
     } else {
-        &format!("{} SeaBee Policies", count)
+        &format!("{count} SeaBee Policies")
     };
 
     TestCommandBuilder::default()
@@ -96,7 +96,7 @@ pub fn list_keys(count: u32) -> Result<(), Failed> {
         .program("seabeectl")
         .args(&["list-keys"])
         .expected_rc(0)
-        .expected_stdout(&format!("Listed {} Keys", count))
+        .expected_stdout(&format!("Listed {count} Keys"))
         .build()?
         .test()
 }

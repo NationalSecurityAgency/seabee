@@ -1,3 +1,4 @@
+---
 site_name: eBPF Security
 site_url: !ENV [SITE_URL]
 repo_name: !ENV [REPO_NAME]

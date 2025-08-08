@@ -33,7 +33,7 @@ fn main() -> Result<()> {
         .parent()
         .context("Expected to be running inside of the target folder")?;
     let binary_path = target_folder.join("bpf_write_user");
-    println!("{:?}", binary_path);
+    println!("{binary_path:?}");
     let func_offset = 0;
     let opts = UprobeOpts {
         func_name: "uprobe_target_string".to_string(),
@@ -60,7 +60,7 @@ fn main() -> Result<()> {
 #[no_mangle]
 fn uprobe_target_string(s: &[u8]) {
     let buf = str::from_utf8(s);
-    println!("data= `{:?}`", buf);
+    println!("data= `{buf:?}`");
 }
 
 // Taken from https://github.com/libbpf/libbpf-rs/blob/master/libbpf-rs/tests/test.rs

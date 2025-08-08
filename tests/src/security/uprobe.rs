@@ -16,10 +16,9 @@ fn security_uprobe_deny_write_user() -> Result<(), Failed> {
         .parent()
         .context("Expected to be running inside of the target folder")?;
     let binary_path = target_folder.join("bpf_write_user");
-    let binary_path_str = binary_path.to_str().context(format!(
-        "{:#?} could not be converted to string",
-        binary_path
-    ))?;
+    let binary_path_str = binary_path
+        .to_str()
+        .context(format!("{binary_path:#?} could not be converted to string"))?;
     TestCommandBuilder::default()
         .program(binary_path_str)
         .expected_rc(101)

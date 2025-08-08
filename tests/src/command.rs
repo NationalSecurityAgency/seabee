@@ -76,7 +76,7 @@ impl TestCommand<'_> {
         if let Some(exp_stdout) = self.expected_stdout {
             if !stdout.contains(exp_stdout) {
                 return command_err(
-                    format!("Unexpected stdout, wanted: \"{}\"", exp_stdout),
+                    format!("Unexpected stdout, wanted: \"{exp_stdout}\""),
                     output,
                 );
             }
@@ -86,7 +86,7 @@ impl TestCommand<'_> {
         if let Some(exp_stderr) = self.expected_stderr {
             if !stderr.contains(exp_stderr) {
                 return command_err(
-                    format!("Unexpected stderr, wanted: \"{}\"", exp_stderr),
+                    format!("Unexpected stderr, wanted: \"{exp_stderr}\""),
                     output,
                 );
             }

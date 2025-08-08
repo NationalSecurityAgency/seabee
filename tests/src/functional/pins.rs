@@ -16,11 +16,9 @@ fn functional_pin_dir_correct() -> Result<(), Failed> {
     // Test that the pin directory reported by the Rust userspace
     // matches the ground truth directory
     if gt_pin_dir != pin_dir {
-        return Err(format!(
-            "Pin dir `{}` does not equal ground truth `{}`",
-            pin_dir, gt_pin_dir
-        )
-        .into());
+        return Err(
+            format!("Pin dir `{pin_dir}` does not equal ground truth `{gt_pin_dir}`").into(),
+        );
     }
     Ok(())
 }
@@ -37,8 +35,7 @@ fn functional_pin_num_total() -> Result<(), Failed> {
     // the number of pins found on the file system
     if linux_pin_total != gt_pin_total {
         return Err(format!(
-            "The number of pins in linux ({}) does not equal ground truth ({})",
-            linux_pin_total, gt_pin_total
+            "The number of pins in linux ({linux_pin_total}) does not equal ground truth ({gt_pin_total})"
         )
         .into());
     }
@@ -46,8 +43,7 @@ fn functional_pin_num_total() -> Result<(), Failed> {
     // the number of pins reported by the Rust userspace
     if rust_pin_total != gt_pin_total {
         return Err(format!(
-            "The number of pins in the Rust state ({}) does not equal ground truth ({})",
-            rust_pin_total, gt_pin_total
+            "The number of pins in the Rust state ({rust_pin_total}) does not equal ground truth ({gt_pin_total})"
         )
         .into());
     }
@@ -64,19 +60,18 @@ fn functional_pin_check_pins() -> Result<(), Failed> {
     for pin_name in gt_pins.keys() {
         // Test that the pin name exists on the filesystem
         if !linux_pins.contains_key(pin_name) {
-            return Err(format!("Ground truth pin '{}' missing on filesystem", pin_name).into());
+            return Err(format!("Ground truth pin '{pin_name}' missing on filesystem").into());
         }
         // Test that the pin name exists in the rust program
         if !rust_pins.contains_key(pin_name) {
-            return Err(format!("Ground truth pin '{}' missing in rust pins", pin_name).into());
+            return Err(format!("Ground truth pin '{pin_name}' missing in rust pins").into());
         }
     }
 
     // Test that the linux pins are the same as the rust pins
     if linux_pins != rust_pins {
         return Err(format!(
-            "Linux and rust pins don't match.\nGround truth: {:?}\nRust: {:?}",
-            gt_pins, rust_pins
+            "Linux and rust pins don't match.\nGround truth: {gt_pins:?}\nRust: {rust_pins:?}"
         )
         .into());
     }

@@ -17,11 +17,11 @@ fn functional_userspace_process_exists() -> Result<(), Failed> {
     let args = FunctionalTestSuite::get_system_state()?;
 
     let pid = args.rust_state.pid;
-    let proc_path_str = format!("/proc/{}", pid);
+    let proc_path_str = format!("/proc/{pid}");
 
     // Check that our process exists
     if !Path::new(&proc_path_str).exists() {
-        return Err(format!("Process {} has not entry on procfs", pid).into());
+        return Err(format!("Process {pid} has not entry on procfs").into());
     }
 
     Ok(())

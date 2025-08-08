@@ -14,7 +14,7 @@ fn security_ptrace_deny_attach() -> Result<(), Failed> {
         Ok(_) => Err("Was able to ptrace attach to process".into()),
         Err(err) => {
             if err != nix::Error::EPERM {
-                Err(format!("Ptrace attach gave unexpected error: {}", err).into())
+                Err(format!("Ptrace attach gave unexpected error: {err}").into())
             } else {
                 Ok(())
             }

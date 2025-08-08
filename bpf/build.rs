@@ -127,7 +127,7 @@ fn generate_header_bindings(hdr_file: &Path, out_path: &Path) -> Result<PathBuf>
     let mut out_file = out_path.join(
         hdr_file
             .file_stem()
-            .context(format!("Header path has no stem: {:?}", hdr_file))?,
+            .context(format!("Header path has no stem: {hdr_file:?}"))?,
     );
     out_file.set_extension("rs");
     let hdr_file_str = hdr_file.to_string_lossy();

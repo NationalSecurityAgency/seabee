@@ -66,7 +66,7 @@ fn bpftool_maps(skel: &dyn Skel, ground_truth: &BPFState) -> Result<HashMap<Stri
             Some(map_state) => map_state,
             None => return Err(anyhow!("\"{}\" map not found in ground truth", name)),
         };
-        let show_str = bpftool_command(&format!("-j map show id {}", map_id))?;
+        let show_str = bpftool_command(&format!("-j map show id {map_id}"))?;
         let mut state: MapState = serde_json::from_slice(show_str.as_bytes())?;
         state.is_static = gt_map_state.is_static;
 

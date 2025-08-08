@@ -42,13 +42,13 @@ fn get_daemon_main_pid() -> Result<u64, Failed> {
         .test_result()?;
     match stdout.trim().parse::<u64>() {
         Ok(x) => Ok(x),
-        Err(_) => Err(format!("Unable to convert \"{}\" into integer", stdout).into()),
+        Err(_) => Err(format!("Unable to convert \"{stdout}\" into integer").into()),
     }
 }
 
 /// Helper to get all of the thread pids of the daemon
 fn get_daemon_tids(pid: u64) -> Result<Vec<u64>, Failed> {
-    let path = format!("/proc/{}/task", pid);
+    let path = format!("/proc/{pid}/task");
     let (stdout, _) = TestCommandBuilder::default()
         .program("ls")
         .args(&[&path])
@@ -62,7 +62,7 @@ fn get_daemon_tids(pid: u64) -> Result<Vec<u64>, Failed> {
         }
         match line.trim().parse::<u64>() {
             Ok(x) => tids.push(x),
-            Err(_) => return Err(format!("Unable to convert \"{}\" into integer", line).into()),
+            Err(_) => return Err(format!("Unable to convert \"{line}\" into integer").into()),
         };
     }
     Ok(tids)
@@ -70,7 +70,7 @@ fn get_daemon_tids(pid: u64) -> Result<Vec<u64>, Failed> {
 
 /// Helper to determine if a process / thread is still running
 fn is_running(pid: u64) -> Result<(), Failed> {
-    let stat = std::fs::read_to_string(format!("/proc/{}/stat", pid))?;
+    let stat = std::fs::read_to_string(format!("/proc/{pid}/stat"))?;
     let stat_split: Vec<&str> = stat.split_whitespace().collect();
     if stat_split[2] != "R" && stat_split[2] != "S" {
         return Err(format!(

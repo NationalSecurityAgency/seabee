@@ -212,7 +212,7 @@ pub fn log_header(data: &[u8]) -> Option<&log_hdr> {
     } else {
         log(
             LogLevel::LOG_LEVEL_ERROR,
-            format!("(unable to parse log header) {:?}", data),
+            format!("(unable to parse log header) {data:?}"),
         );
         None
     }
@@ -242,7 +242,7 @@ impl std::fmt::Display for generic_msg_log {
     /// Formats a log from the sb_umount BPF program
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let msg = char_array_to_str(&self.msg);
-        write!(f, "{}", msg)
+        write!(f, "{msg}")
     }
 }
 
@@ -306,6 +306,6 @@ impl std::fmt::Display for ptrace_access_check_log {
 impl std::fmt::Display for inode_access_log {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let name = char_array_to_str(&self.name);
-        write!(f, "access to {}", name)
+        write!(f, "access to {name}")
     }
 }

@@ -5,7 +5,6 @@ TOP_DIR=$(dirname "$(dirname "$(realpath "$0" || true)")")
 ASCIINEMA_VERSION=2.4.0
 POETRY_VERSION=1.8.3
 PYTHON_VERSION=3.9
-RUST_VERSION=1.79.0
 
 ASCIINEMA=asciinema
 export DOCKER="${DOCKER:-0}"
@@ -13,9 +12,15 @@ POETRY=poetry
 PYTHON=python3
 RUSTUP="$HOME/.cargo/bin/rustup"
 
+# Docker container doesn't have sudo
+SUDO="sudo"
+if [ "$DOCKER" -eq 1 ]; then
+  SUDO=""
+fi
+
 if [ "$EUID" -eq 0 ] && [ "$DOCKER" -eq 0 ]; then
   printf "Please don't run this script as root or sudo\n"
-  exit
+  exit 1
 fi
 
 # https://unix.stackexchange.com/a/567537
@@ -45,11 +50,14 @@ python_check() {
   source "$HOME/.bashrc" && poetry install
 }
 
+# install the latest stable verison of rust
 rust_check() {
   if ! command -V "$RUSTUP" &>/dev/null; then
     printf "Rustup not detected. Installing...\n"
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --profile default --default-toolchain $RUST_VERSION -y
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --profile default -y
   fi
+  # Install rust lints
+  rustup component add rustfmt clippy
 }
 
 autocast_check() {
@@ -58,7 +66,7 @@ autocast_check() {
   fi
 }
 
-sudo "$TOP_DIR"/scripts/update_root_dependencies.sh
+$SUDO "$TOP_DIR"/scripts/update_root_dependencies.sh
 python_check
 rust_check
 autocast_check

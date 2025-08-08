@@ -137,7 +137,7 @@ impl super::SeaBeePolicy {
             return Err(anyhow!("Policy update succeeded, but error occurred while updating files on disk.\nChanges will not persist after reboot. Issuing another successful policy update would resolve the issue.\n{e}"));
         }
 
-        Ok(format!("Success!\n{}", new_policy))
+        Ok(format!("Success!\n{new_policy}"))
     }
 
     /// add a new policy to SeaBee and to the kernel, but does not save to disk

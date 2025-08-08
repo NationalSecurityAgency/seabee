@@ -72,21 +72,20 @@ impl BPFState {
         // maps, yes it's ugly, but it really helps for debugging
         for (name, data) in &self.maps {
             match other.maps.get(name) {
-                None => println!("other did not contain map: {}", name),
+                None => println!("other did not contain map: {name}"),
                 Some(other_data) => {
                     if data != other_data {
-                        println!("map '{}' is different.", name)
+                        println!("map '{name}' is different.")
                     }
                     for (k, v) in &data.data {
                         match other_data.data.get(k) {
                             None => {
-                                println!("other does not have\nkey: {:?}\nvalue:{:?}", k, v)
+                                println!("other does not have\nkey: {k:?}\nvalue:{v:?}")
                             }
                             Some(other_v) => {
                                 if v != other_v {
                                     println!(
-                                        "different values for key:\n{:?}\nself: {:?}\nother: {:?}",
-                                        k, v, other_v
+                                        "different values for key:\n{k:?}\nself: {v:?}\nother: {other_v:?}"
                                     )
                                 }
                             }
@@ -104,12 +103,11 @@ impl BPFState {
         }
         for (name, data) in &self.pins.pins {
             match other.pins.pins.get(name) {
-                None => println!("other does not have pin: {}", name),
+                None => println!("other does not have pin: {name}"),
                 Some(other_data) => {
                     if data != other_data {
                         println!(
-                            "pin data does not match for pin {}\nself: {}\nother: {}",
-                            name, data, other_data
+                            "pin data does not match for pin {name}\nself: {data}\nother: {other_data}"
                         )
                     }
                 }

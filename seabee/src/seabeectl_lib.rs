@@ -140,7 +140,7 @@ impl std::fmt::Display for SocketCommand {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             SocketCommand::List => write!(f, "List"),
-            SocketCommand::Show(ident) => write!(f, "Show: {}", ident),
+            SocketCommand::Show(ident) => write!(f, "Show: {ident}"),
             SocketCommand::Update(update_info) => {
                 write!(f, "Update: {}", update_info.target_path.display())
             }
@@ -148,7 +148,7 @@ impl std::fmt::Display for SocketCommand {
                 write!(f, "Remove: {}", remove_info.target_path.display())
             }
             SocketCommand::ListKeys => write!(f, "Keylist"),
-            SocketCommand::ShowKey(ident) => write!(f, "Show Key: {}", ident),
+            SocketCommand::ShowKey(ident) => write!(f, "Show Key: {ident}"),
             SocketCommand::AddKey(key_info) => {
                 write!(f, "Add Key: {}", key_info.target_path.display())
             }
@@ -171,7 +171,7 @@ pub enum KeyIdentifier {
 impl std::fmt::Display for KeyIdentifier {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            KeyIdentifier::Id { id } => write!(f, "Id: {}", id),
+            KeyIdentifier::Id { id } => write!(f, "Id: {id}"),
             KeyIdentifier::File { path } => write!(f, "File: {}", path.display()),
         }
     }
@@ -198,8 +198,8 @@ impl Default for ObjIdentifier {
 impl std::fmt::Display for ObjIdentifier {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ObjIdentifier::Id { id } => write!(f, "Id: {}", id),
-            ObjIdentifier::Name { name } => write!(f, "Name: {}", name),
+            ObjIdentifier::Id { id } => write!(f, "Id: {id}"),
+            ObjIdentifier::Name { name } => write!(f, "Name: {name}"),
             ObjIdentifier::File { path } => write!(f, "File: {}", path.display()),
         }
     }
@@ -230,7 +230,7 @@ pub fn execute_socket_command(command: SocketCommand) -> Result<()> {
     if response.contains("Error executing command:") {
         return Err(anyhow!("{}", response));
     }
-    println!("{}", response);
+    println!("{response}");
 
     Ok(())
 }
@@ -245,7 +245,7 @@ pub fn execute_local_command(cmd: LocalCommand) -> Result<()> {
         LocalCommand::Config(subcmd) => seabeectl_config(subcmd)?,
     };
 
-    println!("{}", output);
+    println!("{output}");
     Ok(())
 }
 
