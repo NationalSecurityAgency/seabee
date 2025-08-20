@@ -2,5 +2,6 @@
 /target
 /tests/crypto/sigs
 __pycache__
+/ci/qcow
 seabee-root-private-key.pem
 seabee-root-public-key.pem

@@ -1,0 +1,78 @@
+---
+name: Test Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  compile-seabee:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        distro:
+          - fedora-41
+          - fedora-42
+          - ubuntu-jammy
+          - ubuntu-noble
+          - rocky-9
+
+    container:
+      image: ghcr.io/nationalsecurityagency/seabee-build-${{ matrix.distro }}:latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Run `make release`
+        run: make release
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.distro.name }}-build-artifacts
+          path: |
+            target/release/bpf_write_user
+            target/release/policy_test
+            target/release/integration_test
+            target/release/seabee
+            target/release/seabeectl
+            target/release/test_tool
+
+  test-seabee:
+    needs: compile-seabee
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        distro:
+          # - fedora-41
+          - fedora-42
+          # - ubuntu-jammy
+          # - ubuntu-noble
+          # - rocky-9
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.distro.name }}-build-artifacts
+          path: .
+
+      - name: Restore VM image from cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ matrix.distro.name }}.qcow2
+          key: ${{ matrix.distro.name }}
+
+      - name: Test
+      # This line needs to be fixed, would need to run other commands too: `make gen-root-key-ci` `sudo make install-root-key`
+        run: virt-customize -a ${{ matrix.distro.name }}.qcow2 --verbose --copy-in ./target:/TODO --run-command "bash -c 'make test-release-ci'"
+
+

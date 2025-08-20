@@ -1,0 +1,35 @@
+name: Build VM Iamges
+
+on:
+  schedule:
+    - cron: '11 11 * * 6'  # Choosing an random non-peak time: every Saturday at 11:11 UTC
+  workflow_dispatch:
+  # remove this later
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-vm:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        distro:
+          # - fedora-41
+          - fedora-42
+          # - ubuntu-jammy
+          # - ubuntu-noble
+          # - rocky-9
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Build VM images
+        run: ./ci/build_vm_images.sh
+
+      - name: Save VM image to cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ matrix.distro.name }}.qcow2
+          key: ${{ matrix.distro.name }}
