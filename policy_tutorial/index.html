@@ -1,0 +1,1777 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://NationalSecurityAgency.github.io/seabee/policy_tutorial/">
+      
+      
+        <link rel="prev" href="../policy/">
+      
+      
+        <link rel="next" href="../requirements/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.9">
+    
+    
+      
+        <title>Policy Tutorial - SeaBee - Security Enhanced Architecture for eBPF</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../css/timeago.css">
+    
+      <link rel="stylesheet" href="../css/terminal-player.css">
+    
+      <link rel="stylesheet" href="../css/asciinema-player.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#policy-tutorial" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="SeaBee - Security Enhanced Architecture for eBPF" class="md-header__button md-logo" aria-label="SeaBee - Security Enhanced Architecture for eBPF" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SeaBee - Security Enhanced Architecture for eBPF
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Policy Tutorial
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/NationalSecurityAgency/seabee/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="SeaBee - Security Enhanced Architecture for eBPF" class="md-nav__button md-logo" aria-label="SeaBee - Security Enhanced Architecture for eBPF" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    SeaBee - Security Enhanced Architecture for eBPF
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/NationalSecurityAgency/seabee/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../capabilities/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SeaBee Capabilities
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ci/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    GitLab Continuous Integration Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../config/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SeaBee Configuration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../crypto/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cryptography in SeaBee
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../folder_map/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Folder Map
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting_started/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Getting Started with SeaBee
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../implementation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Implementation Notes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Logging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../policy/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SeaBee Policy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Policy Tutorial
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Policy Tutorial
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sample-target-application-kubearmor" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sample Target Application: KubeArmor
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-environment-for-running-kubearmor" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Environment for Running KubeArmor
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-demonstrate-the-value-of-seabee" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Demonstrate The Value of SeaBee
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Demonstrate The Value of SeaBee">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      Goals
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#understanding-kubearmor" class="md-nav__link">
+    <span class="md-ellipsis">
+      Understanding KubeArmor
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overwriting-kubearmor-maps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overwriting KubeArmor Maps
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#so-what" class="md-nav__link">
+    <span class="md-ellipsis">
+      So What?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-developing-seabee-policy-for-kubearmor" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Developing SeaBee Policy for KubeArmor
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Developing SeaBee Policy for KubeArmor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#restoring-kubearmor-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      Restoring KubeArmor State
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-naive-seabee-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating a naive SeaBee Policy
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-tailoring-a-seabee-policy-for-a-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Tailoring a SeaBee Policy for a Tool
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Tailoring a SeaBee Policy for a Tool">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#config-signal_access-and-signal_allow_mask" class="md-nav__link">
+    <span class="md-ellipsis">
+      Config: signal_access and signal_allow_mask
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#policy-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      Policy Scope
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Files
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#config-file_write_access" class="md-nav__link">
+    <span class="md-ellipsis">
+      Config: file_write_access
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#config-include_pins" class="md-nav__link">
+    <span class="md-ellipsis">
+      Config: include_pins
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#config-map_access" class="md-nav__link">
+    <span class="md-ellipsis">
+      Config: map_access
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#config-ptrace_access" class="md-nav__link">
+    <span class="md-ellipsis">
+      Config: ptrace_access
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conclusions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conclusions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Next Steps
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../requirements/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SeaBee System Requirements
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../seabeectl/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    seabeectl
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Testing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../threat_model/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Threat Model
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SeaBee Tutorial
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+    
+  
+  
+    
+  
+  
+    <a href="../assets/rust/static.files/SourceSerif4-LICENSE-a2cfd9d5/" class="md-nav__link">
+      
+  
+  <span class="md-ellipsis">
+    Assets
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+  
+
+  
+
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sample-target-application-kubearmor" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sample Target Application: KubeArmor
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-environment-for-running-kubearmor" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Environment for Running KubeArmor
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-demonstrate-the-value-of-seabee" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Demonstrate The Value of SeaBee
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Demonstrate The Value of SeaBee">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      Goals
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#understanding-kubearmor" class="md-nav__link">
+    <span class="md-ellipsis">
+      Understanding KubeArmor
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#overwriting-kubearmor-maps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overwriting KubeArmor Maps
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#so-what" class="md-nav__link">
+    <span class="md-ellipsis">
+      So What?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-developing-seabee-policy-for-kubearmor" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Developing SeaBee Policy for KubeArmor
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Developing SeaBee Policy for KubeArmor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#restoring-kubearmor-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      Restoring KubeArmor State
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-naive-seabee-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating a naive SeaBee Policy
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-tailoring-a-seabee-policy-for-a-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Tailoring a SeaBee Policy for a Tool
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Tailoring a SeaBee Policy for a Tool">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#config-signal_access-and-signal_allow_mask" class="md-nav__link">
+    <span class="md-ellipsis">
+      Config: signal_access and signal_allow_mask
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#policy-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      Policy Scope
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Files
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#config-file_write_access" class="md-nav__link">
+    <span class="md-ellipsis">
+      Config: file_write_access
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#config-include_pins" class="md-nav__link">
+    <span class="md-ellipsis">
+      Config: include_pins
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#config-map_access" class="md-nav__link">
+    <span class="md-ellipsis">
+      Config: map_access
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#config-ptrace_access" class="md-nav__link">
+    <span class="md-ellipsis">
+      Config: ptrace_access
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conclusions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conclusions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Next Steps
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/NationalSecurityAgency/seabee/edit/main/docs/policy_tutorial.md" title="Edit this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="policy-tutorial">Policy Tutorial<a class="headerlink" href="#policy-tutorial" title="Anchor link to this section for reference">&para;</a></h1>
+<p>This is a guide for getting hands-on with SeaBee policy.</p>
+<p>Section 3 assumes you have already gone through</p>
+<ul>
+<li><a href="../getting_started/">Getting started with SeaBee</a></li>
+<li><a href="../tutorial/">SeaBee Tutorial</a></li>
+</ul>
+<p>If you're looking for documentation about the SeaBee policy, see <a href="../policy/">Policy Documentation</a>. This documentation will also be a helpful reference throughout this tutorial.</p>
+<h2 id="sample-target-application-kubearmor">Sample Target Application: KubeArmor<a class="headerlink" href="#sample-target-application-kubearmor" title="Anchor link to this section for reference">&para;</a></h2>
+<p><a href="https://github.com/kubearmor/KubeArmor/tree/main">KubeArmor</a> is an open source eBPF security tool designed to protected Kubernetes workloads with security policies.
+We've chosen to use this tool to demonstrate the process of developing a new SeaBee policy.</p>
+<p>KubeArmor is a good candidate for this analysis because:</p>
+<ul>
+<li>It is open source, so our analysis can be replicated</li>
+<li>It has a healthy contributor community and many users that could benefit from a SeaBee policy</li>
+<li>Like SeaBee, it leverages the eBPF LSM for security enforcement</li>
+</ul>
+<p>This is purely instructional and should not be construed as an endorsement of KubeArmor by the US Government, the Department of War, or the NSA.</p>
+<h2 id="1-environment-for-running-kubearmor">1. Environment for Running KubeArmor<a class="headerlink" href="#1-environment-for-running-kubearmor" title="Anchor link to this section for reference">&para;</a></h2>
+<p>Tested using ubuntu 24.04 (noble) with bpf lsm enabled.</p>
+<p>Followed <a href="https://docs.kubearmor.io/kubearmor/quick-links/kubearmor_vm">KubeArmor's instructions</a> for vm deployment to avoid
+the extra complexity from setting up k8s.</p>
+<p>This tutorial was written with version KubeArmor 1.6.3, but you may want to use a more recent version.</p>
+<p>Warning: we are about to download, install, and run binaries as root.
+If you don't trust the authors of KubeArmor, it is highly recommended
+to run these commands in a virtual machine or isolated environment.</p>
+<ul>
+<li><code>wget https://github.com/kubearmor/KubeArmor/releases/download/v1.6.3/kubearmor_1.6.3_linux-amd64.deb</code></li>
+<li><code>sudo apt --no-install-recommends install ./kubearmor_1.6.3_linux-amd64.deb</code></li>
+<li><code>systemctl start kubearmor</code></li>
+<li><code>systemctl status kubearmor</code></li>
+</ul>
+<p><img alt="KubeArmor Status" src="../assets/images/tutorial/systemctl-status-kubearmor.png" /></p>
+<p>Now we need to install the <code>karmor</code> client using these <a href="https://github.com/kubearmor/kubearmor-client/blob/main/README.md">instructions</a></p>
+<ul>
+<li>install karmor client to <code>./bin/karmor</code>: <code>curl -sfL http://get.kubearmor.io/ | sh -s</code></li>
+<li>check that <code>Active LSM:</code> is <code>BPFLSM</code> with <code>sudo ./bin/karmor probe</code><ul>
+<li>BPF LSM is KubeArmor's default choice, if the enforcer is not BPF LSM, it is likely the OS does not support it.
+If you are running a modern Ubuntu, then BPF LSM is supported, but must be enabled. See <a href="../requirements/">requirements</a></li>
+</ul>
+</li>
+</ul>
+<p><img alt="karmor probe output" src="../assets/images/tutorial/karmor-probe-blank.png" /></p>
+<p>Now that KubeArmor is running, and the karmor client is installed, we will add a policy:  <code>vim hostpolicy.yaml</code></p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">security.kubearmor.com/v1</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">KubeArmorHostPolicy</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">metadata</span><span class="p">:</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hsp-kubearmor-dev-proc-path-block</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nt">spec</span><span class="p">:</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="nt">nodeSelector</span><span class="p">:</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="nt">matchLabels</span><span class="p">:</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">      </span><span class="nt">kubearmor.io/hostname</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;*&quot;</span><span class="w"> </span><span class="c1"># Apply to all hosts</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="nt">process</span><span class="p">:</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="nt">matchPaths</span><span class="p">:</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/usr/bin/sleep</span><span class="w"> </span><span class="c1"># try sleep 1</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span><span class="nt">action</span><span class="p">:</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">Block</span>
+</span></code></pre></div>
+<ul>
+<li>add the policy:  <code>./bin/karmor vm policy add hostpolicy.yaml</code></li>
+<li>test the policy with <code>sleep: 10</code><ul>
+<li>If you are not blocked, then reload your shell and try again</li>
+</ul>
+</li>
+<li>view the logs: <code>./bin/karmor logs --gRPC=:32767</code></li>
+</ul>
+<p><img alt="Sleep 1 permission denied" src="../assets/images/tutorial/sleep-denied.png" /></p>
+<p>Great! This permission denied indicates that KubeArmor is working, lets demonstrate how SeaBee can improve the security.</p>
+<h2 id="2-demonstrate-the-value-of-seabee">2. Demonstrate The Value of SeaBee<a class="headerlink" href="#2-demonstrate-the-value-of-seabee" title="Anchor link to this section for reference">&para;</a></h2>
+<h3 id="goals">Goals<a class="headerlink" href="#goals" title="Anchor link to this section for reference">&para;</a></h3>
+<p>KubeArmor, and most eBPF tools, do not consider privileged users in their threat model.
+The goal of SeaBee is to elevate the threat model of a tool to protect it from privileged users.
+Privileged users can trivially defeat any protections put in place with eBPF LSM.
+Let's see how that works with KubeArmor.</p>
+<p>The goal of this exercise is to remove the KubeArmor policy we created without revealing to the
+KubeArmor administrator that the policy has been removed. This would enable a privileged attacker to
+undertake any action they want without being blocked or monitored by the security software on the
+system, in this case: KubeArmor. At the same time, from the perspective the KubeArmor userspace and
+system administrator, nothing will appear unusual.</p>
+<p>The first step to accomplishing this is to understand how KubeArmor works.</p>
+<ul>
+<li>KubeArmor is using the eBPF LSM to enforce its security controls.</li>
+<li>In eBPF, all data is stored in eBPF maps. eBPF maps are just key-value stores.</li>
+<li>Some data from our policy must be stored in an eBPF map in order for KubeArmor to act on it (i.e. block 'sleep')</li>
+<li>Any privileged user can modify any eBPF map.</li>
+</ul>
+<p>So this leaves us with several objectives</p>
+<ol>
+<li>Which maps does KubeArmor use to store policy data for our policy?</li>
+<li>How can we overwrite the data in that map?</li>
+</ol>
+<h3 id="understanding-kubearmor">Understanding KubeArmor<a class="headerlink" href="#understanding-kubearmor" title="Anchor link to this section for reference">&para;</a></h3>
+<p>The best way to answer question 1. is to go into the KubeArmor source code and work backwards.
+Lets start by looking the at the log from when KubeArmor denied our use of 'sleep'.</p>
+<p><img alt="KubeArmor log" src="../assets/images/tutorial/kubearmor-log.png" /></p>
+<p>This log has several useful pieces of information</p>
+<ul>
+<li><code>"ProcessName":"/usr/bin/sleep"</code> shows this is the correct log</li>
+<li><code>"Action":"Block"</code> indicates that we were blocked</li>
+<li><code>"Enforcer":"BPFLSM"</code> shows that BPF LSM was used</li>
+<li><code>lsm=SECURITY_BPRM_CHECK</code> indicates that the <code>security_bprm_check</code> LSM hook is being used to block this execution</li>
+</ul>
+<p>Taking this information, we now go to the KubeArmor source code in search of the <code>security_bprm_check</code> enforcer code.</p>
+<p>After a bit of intuitive searching, (alternatively use a fast search tool like <code>ripgrep</code>) we find the code at <a href="https://github.com/kubearmor/KubeArmor/blob/main/KubeArmor/BPF/enforcer.bpf.c">KubeArmor/BPF/enforcer.bpf.c</a></p>
+<p>It's possible this code may have moved after this demo was written in October 2025. The relevant code looks like this:</p>
+<div class="language-C highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="cm">/* SPDX-License-Identifier: GPL-2.0    */</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="cm">/* Copyright 2023 Authors of KubeArmor */</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">SEC</span><span class="p">(</span><span class="s">&quot;lsm/bprm_check_security&quot;</span><span class="p">)</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="kt">int</span><span class="w"> </span><span class="n">BPF_PROG</span><span class="p">(</span><span class="n">enforce_proc</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">linux_binprm</span><span class="w"> </span><span class="o">*</span><span class="n">bprm</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">ret</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="k">struct</span><span class="w"> </span><span class="nc">task_struct</span><span class="w"> </span><span class="o">*</span><span class="n">t</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">task_struct</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">bpf_get_current_task</span><span class="p">();</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="n">event</span><span class="w"> </span><span class="o">*</span><span class="n">task_info</span><span class="p">;</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">retval</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="n">match</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span><span class="k">struct</span><span class="w"> </span><span class="nc">outer_key</span><span class="w"> </span><span class="n">okey</span><span class="p">;</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="n">get_outer_key</span><span class="p">(</span><span class="o">&amp;</span><span class="n">okey</span><span class="p">,</span><span class="w"> </span><span class="n">t</span><span class="p">);</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">  </span><span class="n">u32</span><span class="w"> </span><span class="o">*</span><span class="n">inner</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bpf_map_lookup_elem</span><span class="p">(</span><span class="o">&amp;</span><span class="n">kubearmor_containers</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">okey</span><span class="p">);</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="c1">// many more lines excluded</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>This shows that one of the first actions taken by this security hook is
+performing a lookup in an eBPF map called <code>kubearmor_containers</code>.
+We can find the definition for this map in a different file <a href="https://github.com/kubearmor/KubeArmor/blob/main/KubeArmor/BPF/shared.h">shared.h</a>.</p>
+<p>Tip: you can navigate the codebase for KubeArmor and other tools much more
+quickly by cloning them from github locally and using navigation tools build
+in to modern IDEs such as VSCode C++ extensions. Generative AI can also be useful for searching a codebase.</p>
+<div class="language-C highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="cm">/* SPDX-License-Identifier: GPL-2.0 */</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="cm">/* Copyright 2023 Authors of KubeArmor */</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="k">struct</span><span class="w"> </span><span class="nc">outer_hash</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="n">__uint</span><span class="p">(</span><span class="n">type</span><span class="p">,</span><span class="w"> </span><span class="n">BPF_MAP_TYPE_HASH_OF_MAPS</span><span class="p">);</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="n">__uint</span><span class="p">(</span><span class="n">max_entries</span><span class="p">,</span><span class="w"> </span><span class="mi">256</span><span class="p">);</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="n">__uint</span><span class="p">(</span><span class="n">key_size</span><span class="p">,</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">outer_key</span><span class="p">));</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="n">__uint</span><span class="p">(</span><span class="n">value_size</span><span class="p">,</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">u32</span><span class="p">));</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="n">__uint</span><span class="p">(</span><span class="n">pinning</span><span class="p">,</span><span class="w"> </span><span class="n">LIBBPF_PIN_BY_NAME</span><span class="p">);</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="p">};</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="k">struct</span><span class="w"> </span><span class="nc">outer_hash</span><span class="w"> </span><span class="n">kubearmor_containers</span><span class="w"> </span><span class="n">SEC</span><span class="p">(</span><span class="s">&quot;.maps&quot;</span><span class="p">);</span>
+</span></code></pre></div>
+<p>This map has type <code>BPF_MAP_TYPE_HASH_OF_MAPS</code>. Every eBPF map functions as a key-value store.
+This map type means that the values are also eBPF Maps.</p>
+<p>After exploring the code a little longer, several things become evident:</p>
+<ul>
+<li>the "outer key" used to access the <code>kubearmor_containers</code> map is derived from the current task (process)</li>
+<li>the <code>inner</code> value obtained from <code>kubearmor_containers</code> is used many times throughout the enforcement logic</li>
+</ul>
+<p>We conclude that the <code>inner</code> value must store unique data for a process that helps to determine what enforcement
+action should be taken. This is probably the data we want to overwrite.</p>
+<h3 id="overwriting-kubearmor-maps">Overwriting KubeArmor Maps<a class="headerlink" href="#overwriting-kubearmor-maps" title="Anchor link to this section for reference">&para;</a></h3>
+<p>In order to write data to an eBPF map, we will use <code>bpftool</code>.</p>
+<p>This can easily be installed with <code>apt</code> or <code>dnf</code> or built <a href="https://github.com/libbpf/bpftool">from source</a></p>
+<ul>
+<li><code>sudo apt install linux-tools-common linux-tools-generic linux-tools-$(uname -r)</code></li>
+<li><code>bpftool -V</code></li>
+</ul>
+<p>Using <code>bpftool</code> we can view all the maps on the system: <code>bpftool map list</code></p>
+<p>Here we can see the name and numeric id for each eBPF map. We are looking for the <code>kubearmor_containers</code> map.
+Since eBPF maps have a limited name length, it appears are <code>kubearmor_conta</code>.</p>
+<p><img alt="KubeArmor containers map" src="../assets/images/tutorial/kubearmor-conta.png" /></p>
+<p>In order to view the map, we use <code>sudo bpftool map dump name kubearmor_conta</code></p>
+<p><img alt="Contents of KubeArmor containers map" src="../assets/images/tutorial/dump-kubearmor-containers.png" /></p>
+<p>This shows us that there is one entry, which we know is another eBPF map with id 606.</p>
+<p>We can now dump the contents of this "inner" map with <code>bpftool</code> as well.</p>
+<p><img alt="Dumped contents of map id 100" src="../assets/images/tutorial/dump-map-606.png" /></p>
+<p>It looks like a long array with some bytes at the beginning. If we takes those bytes and interpret them as
+ascii characters...</p>
+<p><code>2f 75 73 72 2f 62 69 6e 2f 73 6c 65 65 70</code> translates to <code>/usr/bin/sleep</code>.</p>
+<p>Which is the path specified in our policy! This confirms that we have located the correct data.</p>
+<p>Now we can just delete this data from the map with <code>bpftool</code></p>
+<p><img alt="Try to delete the key from map 100" src="../assets/images/tutorial/need-more-zeros.png" /></p>
+<p>Uh oh, it looks like we are going to need a lot more zeros.</p>
+<p><img alt="Delete key from map" src="../assets/images/tutorial/broken-kubearmor.png" /></p>
+<p>Now that we removed that string from the map, the security to block <code>sleep</code> is no longer enforced.</p>
+<p>Finally, from the perspective of the KubeArmor administrator, we observe that KubeArmor is still running
+and our policy is still loaded. While it seems there is somewhat limited support for viewing loaded policies
+in the vm mode, we can see our policy is still loaded with <code>./bin/karmor probe</code>.</p>
+<p><img alt="Karmor probe output" src="../assets/images/tutorial/karmor-probe-policy.png" /></p>
+<h3 id="so-what">So What?<a class="headerlink" href="#so-what" title="Anchor link to this section for reference">&para;</a></h3>
+<p>This demonstrates that any privileged user can make unauthorized, anonymous, and mostly invisible policy updates to system security policy with a single command.</p>
+<p>Why be concerned about privileged users?</p>
+<ul>
+<li>It's not just privileged users, the same technique could be accomplished by any privileged process or daemon, or a container with privileges to use eBPF</li>
+<li>Insider threat may be a concern, even the actions of privileged users should be audited, especially when those actions are security-relevant</li>
+</ul>
+<p>Is this a problem with other LSMs like AppArmor and SELinux?</p>
+<ul>
+<li>No</li>
+<li>Privileged users can modify the policy for AppArmor and SELinux, but they don't have arbitrary access to the internal data structures used by these tools</li>
+<li><code>CAP_MAC_ADMIN</code> is needed to modify policy which is used less widely than <code>CAP_BPF</code></li>
+<li>Updates to policy are always logged</li>
+</ul>
+<p>What about tools besides KubeArmor?</p>
+<ul>
+<li>These problems are fundamental to eBPF and therefore affect almost every eBPF tool</li>
+<li>These same techniques can likely be used to disable security logging or network security policy in other tools</li>
+</ul>
+<p>SeaBee exists to prevent any privileged user, process, daemon, or container from modifying or disabling security critical eBPF tools like KubeArmor.</p>
+<h2 id="3-developing-seabee-policy-for-kubearmor">3. Developing SeaBee Policy for KubeArmor<a class="headerlink" href="#3-developing-seabee-policy-for-kubearmor" title="Anchor link to this section for reference">&para;</a></h2>
+<h3 id="restoring-kubearmor-state">Restoring KubeArmor State<a class="headerlink" href="#restoring-kubearmor-state" title="Anchor link to this section for reference">&para;</a></h3>
+<p>In order to restore our KubeArmor policy so that is is enforcing again, we will remove and re-add it:</p>
+<ul>
+<li><code>sudo ./bin/karmor vm policy delete hostpolicy.yaml</code></li>
+<li><code>sudo ./bin/karmor vm policy add hostpolicy.yaml</code></li>
+<li>verify policy added with <code>sudo ./bin/karmor probe</code></li>
+<li><code>sleep 1</code> should return permission denied again</li>
+</ul>
+<h3 id="creating-a-naive-seabee-policy">Creating a naive SeaBee Policy<a class="headerlink" href="#creating-a-naive-seabee-policy" title="Anchor link to this section for reference">&para;</a></h3>
+<p>First we need to find the <code>kubearmor</code> binary we want to protect.
+This is probably specified in the service file.
+We can view the path of the service file by running <code>systemctl status kubearmor</code>.
+For me, the service file is <code>/usr/lib/systemd/system/kubearmor.service</code></p>
+<div class="language-INI highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">[Unit]</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="na">Description</span><span class="o">=</span><span class="s">KubeArmor</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="k">[Service]</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="na">User</span><span class="o">=</span><span class="s">root</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="na">KillMode</span><span class="o">=</span><span class="s">process</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="na">WorkingDirectory</span><span class="o">=</span><span class="s">/opt/kubearmor/</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="na">ExecStart</span><span class="o">=</span><span class="s">/opt/kubearmor/kubearmor</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="na">Restart</span><span class="o">=</span><span class="s">always</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="na">RestartSec</span><span class="o">=</span><span class="s">10</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="k">[Install]</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="na">WantedBy</span><span class="o">=</span><span class="s">multi-user.target</span>
+</span></code></pre></div>
+<p>The "ExecStart" tells us the KubeArmor binary is installed at <code>/opt/kubearmor/kubearmor</code></p>
+<p>Create the following simple SeaBee policy: <code>vim kubearmor-simple-seabee-policy.yaml</code></p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kubearmor-simple-seabee-policy</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nt">scope</span><span class="p">:</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/kubearmor/kubearmor</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="nt">files</span><span class="p">:</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="nt">config</span><span class="p">:</span><span class="w"> </span><span class="c1"># leave as default</span>
+</span></code></pre></div>
+<ul>
+<li>Sign the policy: <code>sudo seabeectl sign -t kubearmor-simple-seabee-policy.yaml -k rsa-private-key.pem</code></li>
+<li>Start up SeaBee: <code>systemctl start test_seabee</code></li>
+<li>Add the policy: <code>sudo seabeectl update -t kubearmor-simple-seabee-policy.yaml -s signature.sign</code></li>
+</ul>
+<blockquote>
+<p>Note: if this isn't working, you may need to create a key pair
+and add a public verification key to SeaBee.
+You can see how to do this in the <a href="../tutorial/">SeaBee tutorial</a></p>
+</blockquote>
+<p>Finally restart KubeArmor so the policy get applied: <code>systemctl restart kubearmor</code></p>
+<p>Lastly, test to see if we can manipulate KubeArmor's maps:</p>
+<ul>
+<li><code>sudo bpftool map dump name kubearmor_conta</code></li>
+</ul>
+<p><img alt="KubeArmor map dump is denied" src="../assets/images/tutorial/kubearmor-map-dump-deny.png" /></p>
+<p>We see that we have been denied. Among many protections, SeaBee tracks all eBPF maps created
+by a protected process and prevents external access to them. Thus, SeaBee prevents the attack
+we previously demonstrated. No more arbitrary access to the internal data structures of KubeArmor.</p>
+<h2 id="4-tailoring-a-seabee-policy-for-a-tool">4. Tailoring a SeaBee Policy for a Tool<a class="headerlink" href="#4-tailoring-a-seabee-policy-for-a-tool" title="Anchor link to this section for reference">&para;</a></h2>
+<p>For this final part of the tutorial, we will take an in-depth look at
+each component of SeaBee policy in order to construct a policy that is
+more tailored for KubeArmor. By extension, this analysis should give
+helpful considerations when crafting policy for any other tools with SeaBee.</p>
+<p>If you haven't yet, reading the <a href="../policy/">policy documentation</a> will be very helpful.
+We are going to walk through each part of a SeaBee policy and discuss how
+to tailor that part of a policy for a tool.</p>
+<p>We will start from our simple SeaBee policy for KubeArmor and expand it step by step.
+Unfortunately, this process is very manual and is best completed by
+a developer for the tool who understands how the tool works best.
+Developing the policy for KubeArmor took hours of experimentation
+and reading documentation. The final result may still be imperfect.</p>
+<p>It is important to note that the SeaBee policy we create for KubeArmor
+will only be relevant for the vm or host mode of KubeArmor.
+When deploying KubeArmor on K8s as a DaemonSet,
+there are different artifacts to protect, more
+complexity and a different attack surface.</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kubearmor-simple-seabee-policy</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nt">scope</span><span class="p">:</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/kubearmor/kubearmor</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="nt">files</span><span class="p">:</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="nt">config</span><span class="p">:</span><span class="w"> </span><span class="c1"># leave as default</span>
+</span></code></pre></div>
+<h3 id="config-signal_access-and-signal_allow_mask">Config: signal_access and signal_allow_mask<a class="headerlink" href="#config-signal_access-and-signal_allow_mask" title="Anchor link to this section for reference">&para;</a></h3>
+<p>Read about <a href="../policy/#sigmask">signal access in SeaBee</a></p>
+<p>We're going to start with signals because it will make it simpler
+to test the other parts of the policy.
+One of the current issues with out policy is that we block signals
+to <code>kubearmor</code>. As a result, some functionality is broken, like
+<code>systemctl stop kubearmor</code> which sends a SIGTERM(15) to the process.</p>
+<p>You can see this by trying <code>systemctl stop kubearmor</code> while SeaBee
+is running with out policy loaded.</p>
+<p>SeaBee logs: <code>journalctl -u test_seabee -f</code>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Oct 23 17:58:41 ubuntu seabee[2785283]:  WARN SeaBee policy 2: task_kill: deny systemd(1) send SIGTERM(15) to kubearmor(2785562)
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>Oct 23 17:58:41 ubuntu seabee[2785283]:  WARN SeaBee policy 2: task_kill: deny systemd(1) send SIGKILL(9) to kubearmor(2785562)
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>Oct 23 17:58:41 ubuntu seabee[2785283]:  WARN SeaBee policy 2: task_kill: deny systemd(1) send SIGTERM(15) to kubearmor(2785562)
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>Oct 23 17:58:41 ubuntu seabee[2785283]:  WARN SeaBee policy 2: task_kill: deny systemd(1) send SIGKILL(9) to kubearmor(2785562)
+</span></code></pre></div>
+<p>systemd logs: <code>journalctl -u kubearmor -f</code>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Oct 23 17:58:41 ubuntu systemd[1]: kubearmor.service: Failed to kill main process 2785562 (kubearmor), ignoring: Operation not permitted
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>Oct 23 17:58:41 ubuntu systemd[1]: kubearmor.service: Killing process 2785562 (kubearmor) with signal SIGKILL.
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>Oct 23 17:58:41 ubuntu systemd[1]: kubearmor.service: Failed to kill main process 2785562 (kubearmor), ignoring: Operation not permitted
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>Oct 23 17:58:41 ubuntu systemd[1]: kubearmor.service: Failed to kill main process 2785562 (kubearmor), ignoring: Operation not permitted
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>Oct 23 17:58:41 ubuntu systemd[1]: kubearmor.service: Killing process 2785562 (kubearmor) with signal SIGKILL.
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>Oct 23 17:58:41 ubuntu systemd[1]: kubearmor.service: Failed to kill main process 2785562 (kubearmor), ignoring: Operation not permitted
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>Oct 23 17:58:41 ubuntu systemd[1]: kubearmor.service: Deactivated successfully.
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>Oct 23 17:58:41 ubuntu systemd[1]: kubearmor.service: Unit process 2785562 (kubearmor) remains running after unit stopped.
+</span></code></pre></div>
+<p>To prevent unexpected denials like this, lets audit signals to <code>kubearmor</code>
+rather than block.
+While this allows using signals to kill KubeArmor,
+such actions will appear in SeaBee logs and also be shown on the process list (that <code>kubearmor</code> is no longer running)</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kubearmor-simple-seabee-policy</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nt">scope</span><span class="p">:</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/kubearmor/kubearmor</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="nt">files</span><span class="p">:</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="nt">config</span><span class="p">:</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span><span class="nt">signal_access</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">audit</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">  </span><span class="nt">signal_allow_mask</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+</span></code></pre></div>
+<ul>
+<li>modify: <code>vim kubearmor-simple-seabee-policy.yaml</code></li>
+<li>sign: <code>sudo seabeectl sign -t kubearmor-simple-seabee-policy.yaml -k rsa-private-key.pem</code></li>
+<li>update: <code>sudo seabeectl update -t kubearmor-simple-seabee-policy.yaml -s signature.sign</code></li>
+</ul>
+<p>If you ran <code>systemctl stop kubearmor</code> while SeaBee was running,
+then you will have to</p>
+<ul>
+<li>stop SeaBee: <code>systemctl stop test_seabee</code></li>
+<li>kill KubeArmor: <code>sudo pkill kubearmor</code></li>
+<li>restart SeaBee: <code>systemctl start test_seabee</code></li>
+<li>restart KubeArmor: <code>systemctl start kubearmor</code></li>
+</ul>
+<p>Before continuing verify that</p>
+<ul>
+<li>seabee has our new policy with <code>sudo seabeectl list</code></li>
+<li>kUbeArmor is running with <code>systemctl status kubearmor</code></li>
+</ul>
+<p><img alt="new policy and KubeArmor running" src="../assets/images/tutorial/allow-kubearmor-signals.png" /></p>
+<h3 id="policy-scope">Policy Scope<a class="headerlink" href="#policy-scope" title="Anchor link to this section for reference">&para;</a></h3>
+<p>Read about <a href="../policy/#scope">policy scope</a></p>
+<p>When creating a policy scope for a tool, there are several important considerations.</p>
+<ul>
+<li>the 'core' binary, i.e. <code>kubearmor</code> must be in scope</li>
+<li>any other binary that needs access to KubeArmor's files or eBPF structures must also be in scope</li>
+<li>The scope cannot be so broad that it causes unexpected permission
+denials by protecting things that need to be available.
+For example, systemd cannot be in scope.</li>
+<li>The scope generally should not include executables that belong
+the system (ubuntu) rather than the tool (KubeArmor)</li>
+</ul>
+<p>Then what executables should be in scope for KubeArmor?</p>
+<p>We already have <code>/opt/kubearmor/kubearmor</code> in scope.
+We will add <code>./bin/karmor</code> since it is used to manage KubeArmor policies.
+However, we will need an absolute path for a SeaBee policy.
+Lets copy the <code>karmor</code> client to <code>/usr/local/bin/karmor</code> which
+should allow us to run it without modifying our PATH.</p>
+<p><code>sudo cp ./bin/karmor /usr/local/bin/karmor</code></p>
+<p>verify with <code>sudo karmor probe</code></p>
+<p>Now we have a new SeaBee policy scope:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nt">scope</span><span class="p">:</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/kubearmor/kubearmor</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/usr/local/bin/karmor</span>
+</span></code></pre></div>
+<p>We won't add anything else to the scope because it doesn't seem
+like there are any other binaries that KubeArmor is using.</p>
+<h3 id="files">Files<a class="headerlink" href="#files" title="Anchor link to this section for reference">&para;</a></h3>
+<p>Read about <a href="../policy/#files">files in SeaBee</a></p>
+<p>For each file or directory we put in the SeaBee policy,
+only the processes in scope will be able to write to them them.
+This means that if a user or external needs to modify a file
+for the tool to function,
+that file and the directory it lives in should not be listed in
+the SeaBee policy.</p>
+<p>For KubeArmor, we will start by looking at different classes of files
+that ought to be protected.</p>
+<h4 id="policy-files">Policy files<a class="headerlink" href="#policy-files" title="Anchor link to this section for reference">&para;</a></h4>
+<p><code>/opt/kubearmor/policies</code> contains the policy we created. You can
+experiment by deleting this folder and restarting KubeArmor to see
+that our policy is no longer loaded.
+This folder should be protected.</p>
+<h4 id="configuration-file">Configuration file<a class="headerlink" href="#configuration-file" title="Anchor link to this section for reference">&para;</a></h4>
+<p><code>/opt/kubearmor/kubearmor.yaml</code> contains a configuration file.
+Mine looks like this:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nt">cluster</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;default&quot;</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="nt">gRPC</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;32767&quot;</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="nt">hostVisibility</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;process,file,network,capabilities&quot;</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="nt">enableKubeArmorHostPolicy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="nt">enableKubeArmorVm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="nt">k8s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="nt">alertThrottling</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="nt">maxAlertPerSec</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="nt">throttleSec</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span>
+</span></code></pre></div>
+<p>Noticing that <code>enableKubeArmorHostPolicy</code> is set to true,
+I tried switching it to false and restarting KubeArmor.
+I this causes KubeArmor to load, but no longer enforce policies.
+However, this configuration change did appear in KubeArmor logs
+both during startup and at runtime.</p>
+<p><code>journalctl -u kubearmor -f</code></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Oct 23 18:24:09 ubuntu kubearmor[2786276]: 2025-10-23 18:24:09.784295        INFO        setting config from file [kubearmor.yaml]
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>Oct 23 18:24:09 ubuntu kubearmor[2786276]: 2025-10-23 18:24:09.784441        INFO        Configuration [{... Policy:false HostPolicy:false...}]
+</span></code></pre></div>
+<p>Given the security implications of this configuration file,
+SeaBee should probably protect it.</p>
+<h4 id="log-files">Log files<a class="headerlink" href="#log-files" title="Anchor link to this section for reference">&para;</a></h4>
+<p>KubeArmor logs exist in two places.</p>
+<ol>
+<li>the journal, which is managed by systemd and does not need to be protected by SeaBee</li>
+<li>the security events logs with that can be seen with <code>karmor logs --gRPC=:32767</code>
+These logs are not stored by default, but can be configured to be stored on disk with <code>--logPath</code> option.</li>
+</ol>
+<p>For our use case, we will not add a KubeArmor log path, so no
+action is needed to protect KubeArmor log files.
+However, if you were going to write logs to disk, it might make sense to
+protect <code>/var/log/kubearmor/</code> or a similar location with SeaBee.</p>
+<h4 id="other-files">other files<a class="headerlink" href="#other-files" title="Anchor link to this section for reference">&para;</a></h4>
+<p>I tried deleting <code>/opt/kubearmor/BPF</code> and KubeArmor failed to start.
+This folder should be protected since KubeArmor relies on it.
+Fixing this required re-installing KubeArmor.</p>
+<p>I haven't look at <code>/opt/kubearmor/templates</code>, but
+since everything else in <code>/opt/kubearmor/</code> seems important to KubeArmor,
+se will protect the entire <code>/opt/kubearmor/</code> directory.</p>
+<h4 id="updating-our-policy-again">Updating our policy again<a class="headerlink" href="#updating-our-policy-again" title="Anchor link to this section for reference">&para;</a></h4>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kubearmor-simple-seabee-policy</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="nt">scope</span><span class="p">:</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/kubearmor/kubearmor</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/usr/local/bin/karmor</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="nt">files</span><span class="p">:</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/kubearmor</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="nt">config</span><span class="p">:</span>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">  </span><span class="nt">signal_access</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">audit</span>
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">  </span><span class="nt">signal_allow_mask</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+</span></code></pre></div>
+<ul>
+<li>modify: <code>vim kubearmor-simple-seabee-policy.yaml</code></li>
+<li>sign: <code>sudo seabeectl sign -t kubearmor-simple-seabee-policy.yaml -k rsa-private-key.pem</code></li>
+<li>update: <code>sudo seabeectl update -t kubearmor-simple-seabee-policy.yaml -s signature.sign</code></li>
+</ul>
+<p>The final test of our policy is to verify that KubeArmor is still
+functioning: <code>systemctl restart kubearmor</code>.</p>
+<p>After checking <code>kubearmor</code> logs for errors, it seems to work.
+I also observe that <code>sleep 1</code> is still blocked.</p>
+<p><img alt="KubeArmor Logs after SeaBee policy applied" src="../assets/images/tutorial/kubearmor-logs.png" /></p>
+<h3 id="config-file_write_access">Config: file_write_access<a class="headerlink" href="#config-file_write_access" title="Anchor link to this section for reference">&para;</a></h3>
+<p>Read more about SeaBee <a href="../policy/#config">policy config</a></p>
+<p>This will remain as <code>block</code> which is currently the default.</p>
+<h3 id="config-include_pins">Config: include_pins<a class="headerlink" href="#config-include_pins" title="Anchor link to this section for reference">&para;</a></h3>
+<p>It is clear that KubeArmor crates eBPF pins by doing: <code>ls /sys/fs/bpf</code>.
+However, it is unclear how these pins are used.</p>
+<p>It is possible to delete these pins using <code>sudo rm /sys/fs/bpf/&lt;pin_name&gt;</code> if SeaBee is not running.
+However, KubeArmor still works since these pinned maps still exist in kernel memory.
+The pin is just a reference to the maps.</p>
+<p>It is a good assumption that if KubeArmor creates these pins, it probably
+relies on them to function correctly.</p>
+<p>We will leave <code>include_pins</code> as the default, which is true.
+This ensures the pins are protected by SeaBee.</p>
+<h3 id="config-map_access">Config: map_access<a class="headerlink" href="#config-map_access" title="Anchor link to this section for reference">&para;</a></h3>
+<p>This will remain as <code>block</code> which is currently the default.</p>
+<p>This protection is critical to preventing the attack we demonstrated earlier.</p>
+<h3 id="config-ptrace_access">Config: ptrace_access<a class="headerlink" href="#config-ptrace_access" title="Anchor link to this section for reference">&para;</a></h3>
+<p>It is possible attach to <code>kubearmor</code> with <code>strace -p &lt;pid&gt;</code>.</p>
+<p>This means that ptrace access is currently allowed.
+Ptrace can be use maliciously to manipulate how the <code>kubearmor</code>
+process works.</p>
+<p>Since <code>ptrace</code> would only ever be needed for <code>kubearmor</code> for debugging,
+we will keep it as <code>block</code>, which is the default</p>
+<h3 id="conclusions">Conclusions<a class="headerlink" href="#conclusions" title="Anchor link to this section for reference">&para;</a></h3>
+<p>Since the rest of the protections remain as the default,
+we have completed our SeaBee policy for KubeArmor.</p>
+<p>You can see this policy as <code>sample_policy/kubearmor-systemd.yaml</code></p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kubearmor-simple-seabee-policy</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="nt">scope</span><span class="p">:</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/kubearmor/kubearmor</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/usr/local/bin/karmor</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="nt">files</span><span class="p">:</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/kubearmor</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="nt">config</span><span class="p">:</span>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="w">  </span><span class="nt">signal_access</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">audit</span>
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="w">  </span><span class="nt">signal_allow_mask</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="w">  </span><span class="c1"># other options remain as default</span>
+</span></code></pre></div>
+<h2 id="5-next-steps">5. Next Steps<a class="headerlink" href="#5-next-steps" title="Anchor link to this section for reference">&para;</a></h2>
+<p>Thats All!</p>
+<p>If you have more questions about SeaBee, please reach out to us on
+GitHub.</p>
+<p>We always welcome issues, feature requests, and contributions.</p>
+<div class="language-Shell highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># cleanup</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>systemctl<span class="w"> </span>stop<span class="w"> </span>test_seabee
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>systemctl<span class="w"> </span>stop<span class="w"> </span>kubearmor
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>rm<span class="w"> </span>/usr/local/bin/karmor
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>rm<span class="w"> </span>hostpolicy.yaml
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>rm<span class="w"> </span>kubearmor-simple-seabee-policy.yaml
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>rm<span class="w"> </span>signature.sign
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>rm<span class="w"> </span>rsa-private-key.pem
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>rm<span class="w"> </span>rsa-public-key.pem
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>sudo<span class="w"> </span>apt<span class="w"> </span>remove<span class="w"> </span>kubearmor
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>sudo<span class="w"> </span>seabeectl<span class="w"> </span>clean<span class="w"> </span>policy
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>sudo<span class="w"> </span>seabeectl<span class="w"> </span>clean<span class="w"> </span>keys
+</span></code></pre></div>
+
+
+
+
+
+
+
+  
+    
+  
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="October 29, 2025 21:36:05"><span class="timeago" datetime="2025-10-29T21:36:05+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="October 29, 2025 21:36:05">2025-10-29</span>
+  </span>
+
+    
+    
+    
+      
+  
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Contributors">
+      
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 4a4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1 4-4m0 10c4.42 0 8 1.79 8 4v2H4v-2c0-2.21 3.58-4 8-4"/></svg>
+      
+    </span>
+    <nav>
+      
+        <a href="mailto:42473587+awandke@users.noreply.github.com">Alan Wandke</a>
+    </nav>
+  </span>
+
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.action.edit", "content.code.copy", "content.tooltips", "navigation.indexes", "navigation.instant", "navigation.instant.progress", "navigation.prune", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+        <script src="../js/timeago.min.js"></script>
+      
+        <script src="../js/timeago_mkdocs_material.js"></script>
+      
+        <script src="../js/asciinema-player.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,1347 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://NationalSecurityAgency.github.io/seabee/seabeectl/">
+      
+      
+        <link rel="prev" href="../requirements/">
+      
+      
+        <link rel="next" href="../testing/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.9">
+    
+    
+      
+        <title>seabeectl - SeaBee - Security Enhanced Architecture for eBPF</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../css/timeago.css">
+    
+      <link rel="stylesheet" href="../css/terminal-player.css">
+    
+      <link rel="stylesheet" href="../css/asciinema-player.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#seabeectl" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="SeaBee - Security Enhanced Architecture for eBPF" class="md-header__button md-logo" aria-label="SeaBee - Security Enhanced Architecture for eBPF" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SeaBee - Security Enhanced Architecture for eBPF
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              seabeectl
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/NationalSecurityAgency/seabee/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="SeaBee - Security Enhanced Architecture for eBPF" class="md-nav__button md-logo" aria-label="SeaBee - Security Enhanced Architecture for eBPF" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    SeaBee - Security Enhanced Architecture for eBPF
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/NationalSecurityAgency/seabee/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../capabilities/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SeaBee Capabilities
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ci/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    GitLab Continuous Integration Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../config/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SeaBee Configuration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../crypto/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cryptography in SeaBee
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../folder_map/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Folder Map
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting_started/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Getting Started with SeaBee
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../implementation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Implementation Notes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Logging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../policy/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SeaBee Policy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../policy_tutorial/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Policy Tutorial
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../requirements/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SeaBee System Requirements
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    seabeectl
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    seabeectl
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-alg" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl alg
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-sign" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl sign
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-verify" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl verify
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-clean" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl clean
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl config
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-shutdown-request" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl shutdown-request
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl list
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-show" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl show
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-update" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl update
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-remove" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl remove
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-list-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl list-keys
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-show-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl show-key
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-add-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl add-key
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-remove-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl remove-key
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-shutdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl shutdown
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Testing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../threat_model/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Threat Model
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SeaBee Tutorial
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+    
+  
+  
+    
+  
+  
+    <a href="../assets/rust/static.files/SourceSerif4-LICENSE-a2cfd9d5/" class="md-nav__link">
+      
+  
+  <span class="md-ellipsis">
+    Assets
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+  
+
+  
+
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-alg" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl alg
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-sign" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl sign
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-verify" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl verify
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-clean" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl clean
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl config
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-shutdown-request" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl shutdown-request
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl list
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-show" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl show
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-update" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl update
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-remove" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl remove
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-list-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl list-keys
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-show-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl show-key
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-add-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl add-key
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-remove-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl remove-key
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seabeectl-shutdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      seabeectl shutdown
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/NationalSecurityAgency/seabee/edit/main/docs/seabeectl.md" title="Edit this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="seabeectl"><code>seabeectl</code><a class="headerlink" href="#seabeectl" title="Anchor link to this section for reference">&para;</a></h1>
+<p><code>seabeectl</code> is a command line client for the SeaBee daemon.
+<code>seabeectl</code> sends requests to the SeaBee daemon and returns responses to the user.
+These requests include things such as updating policy, adding keys, and turning off SeaBee.
+<code>seabeectl</code> also has various convenient features that don't interact with the SeaBee daemon
+such as signing SeaBee policies and some testing/debugging commands.</p>
+<p><code>seabeectl</code> does it best to be self-documenting with <code>seabeectl --help</code> or
+<code>seabeectl &lt;command&gt; --help</code>. This documentation gives and overview of
+<code>seabeectl</code> and may explain in more detail that tool's help menu.</p>
+<h2 id="seabeectl-alg"><code>seabeectl alg</code><a class="headerlink" href="#seabeectl-alg" title="Anchor link to this section for reference">&para;</a></h2>
+<p>This will always display up to date information about what cryptographic algorithms are supported.</p>
+<p>example: <code>sudo seabeectl alg</code></p>
+<p>Currently SeaBee supports RSA and ECDSA keys. We also support SHA-2 and SHA-3 message digests.
+SeaBee also expects keys to be in <code>.pem</code> format.</p>
+<p>PQC support will be added with <a href="https://github.com/NationalSecurityAgency/seabee/issues/42">issue 42</a>.</p>
+<p>If cryptographic support is a barrier for using SeaBee please create an issue and we can
+add support for more algorithms.</p>
+<h2 id="seabeectl-sign"><code>seabeectl sign</code><a class="headerlink" href="#seabeectl-sign" title="Anchor link to this section for reference">&para;</a></h2>
+<p>Sign a target file with a private signing key.</p>
+<p>example: <code>sudo seabeectl sign -t tests/policies/sample_policy.yaml -k seabee-root-private-key.pem</code></p>
+<ul>
+<li><code>-t</code> to specify a path to a file that should be signed</li>
+<li><code>-k</code> the path to a key to a signing key</li>
+<li><code>-o</code> the path the signature file should be output to</li>
+<li><code>-d</code> an algorithm used to compute the message digest (default: SHA3-256)</li>
+<li><code>-n</code> don't prompt for a password, only use for unencrypted signing keys which is insecure</li>
+</ul>
+<p>This uses the rust <a href="https://docs.rs/openssl/latest/openssl/">openssl crate</a> to sign a target file.</p>
+<h2 id="seabeectl-verify"><code>seabeectl verify</code><a class="headerlink" href="#seabeectl-verify" title="Anchor link to this section for reference">&para;</a></h2>
+<p>Verify a signature on a file with a public verification key.</p>
+<p>example: <code>sudo seabeectl verify -t tests/policies/sample_policy.yaml -s signature.sign -k /etc/seabee/seabee_root_key.pem</code></p>
+<ul>
+<li><code>-t</code> the file for which the signature was generated</li>
+<li><code>-s</code> the signature for the file</li>
+<li><code>-k</code> the path to the public verification key</li>
+<li><code>-d</code> the digest used to generate the signature if not using the default (SHA3-256)</li>
+</ul>
+<p>This uses the rust <a href="https://docs.rs/openssl/latest/openssl/">openssl crate</a> to verify a target file.</p>
+<p>This command is mostly used for testing and experimentation.
+It uses the same underlying logic as SeaBee to verify files.</p>
+<h2 id="seabeectl-clean"><code>seabeectl clean</code><a class="headerlink" href="#seabeectl-clean" title="Anchor link to this section for reference">&para;</a></h2>
+<p>Used to clean up SeaBee files. Use with caution, this will delete saved keys, policies, signatures, and configs.</p>
+<p>example: <code>sudo seabeectl clean policy</code></p>
+<p>This command can only be used while SeaBee is turned off.
+This is because it deletes saved SeaBee files.
+Whenever a policy or key is added, SeaBee will save it to <code>/etc/seabee</code>.
+This allows SeaBee to reload keys or policies when the system reboots.
+While SeaBee is running, these files cannot be modified.</p>
+<ul>
+<li><code>policy</code> deletes saved policies and their signatures</li>
+<li><code>keys</code> deletes saved keys and signatures</li>
+<li><code>root-key</code> deletes the root key. Note that SeaBee needs a root key in order to run.</li>
+<li><code>config</code> deletes the saved SeaBee config.</li>
+<li><code>all</code> does all of the above by deleting <code>/etc/seabee</code></li>
+</ul>
+<h2 id="seabeectl-config"><code>seabeectl config</code><a class="headerlink" href="#seabeectl-config" title="Anchor link to this section for reference">&para;</a></h2>
+<p>Add, update, or delete the saved SeaBee config.</p>
+<p>example: <code>sudo seabeectl config get</code></p>
+<p>This command adds convenience for interacting with the SeaBee <em>saved</em> configuration.
+The saved configuration lives at <code>/etc/seabee/config.yaml</code>.
+It is important to remember that the SeaBee saved configuration may be different than
+the actual configuration that SeaBee is using.
+This is because the any option not specified in the saved configuration will use a default.
+Also, if command line arguments are used together with saved configuration, then
+the command line option will take precedence over a saved configuration.
+For more information about SeaBee configuration, see the <a href="../config/">config docs</a>.</p>
+<p>There are three subcommands for <code>seabeectl config</code></p>
+<ul>
+<li><code>get</code> dumps the contents of the current saved SeaBee config</li>
+<li><code>update</code> update the current config with a new one from a file.
+This just performs a copy and overwrites the existing saved config.</li>
+<li><code>delete</code> deletes the current saved config.</li>
+</ul>
+<h2 id="seabeectl-shutdown-request"><code>seabeectl shutdown-request</code><a class="headerlink" href="#seabeectl-shutdown-request" title="Anchor link to this section for reference">&para;</a></h2>
+<p>Generate a SeaBee shutdown request for this machine.</p>
+<p>example: <code>seabeectl shutdown-request /path/to/shutdown_request.yaml</code></p>
+<p>By default, the file will be created as <code>shutdown_request.yaml</code> in the current directory.
+Optionally, a path can be passed to this command as a final argument.</p>
+<p>See <a href="#seabeectl-shutdown">shutdown</a> for how to use the generated file to shutdown SeaBee.</p>
+<h2 id="seabeectl-list"><code>seabeectl list</code><a class="headerlink" href="#seabeectl-list" title="Anchor link to this section for reference">&para;</a></h2>
+<p>Shows a list of all currently loaded SeaBee policies</p>
+<h2 id="seabeectl-show"><code>seabeectl show</code><a class="headerlink" href="#seabeectl-show" title="Anchor link to this section for reference">&para;</a></h2>
+<p>Displays a single loaded SeaBee policy.
+This can also be used to check if a particular policy exists.</p>
+<p>example: <code>seabeectl show name sample-policy</code></p>
+<p>For this command you will have to choose how to identify the policy</p>
+<ul>
+<li>by policy id with <code>id</code></li>
+<li>by name with <code>name</code></li>
+<li>by a policy file with <code>file</code></li>
+</ul>
+<h2 id="seabeectl-update"><code>seabeectl update</code><a class="headerlink" href="#seabeectl-update" title="Anchor link to this section for reference">&para;</a></h2>
+<p>Takes a policy file as an argument and adds it to SeaBee if
+a policy with the same name does not exist or updates a policy if it does exist.</p>
+<p>example: <code>sudo seabeectl update -t tests/policies/sample_policy.yaml -s signature.sign</code></p>
+<p>note: this example may fail if you have not yet done <code>sudo mkdir /etc/test_seabee_policy</code></p>
+<ul>
+<li><code>-t</code> is the path to the policy you are adding</li>
+<li><code>-s</code> is the signature for that policy</li>
+<li><code>-d</code> is the message digest used for the signature (only if you are not using the default)</li>
+</ul>
+<p>If <code>--verify-policy</code> is enabled, which is necessary for security, then this command
+requires a signature for the policy. The <a href="../crypto/">crypto docs</a> explains how to sign
+and load a SeaBee policy. Basically, you need to create a public key pair, add the public
+key to SeaBee with <code>seabeectl add-key</code>, sign the policy with <code>seabeectl sign</code>, then
+add the policy with <code>seabeectl update</code>.</p>
+<p>If the signature was not generated using the default message digest (SHA3-256), then
+you will need to use the <code>-d</code> option to specify the digest algorithm.
+This ensures that the signature can be properly verified.</p>
+<p>All files or directories specified in a policy must exist on policy load.</p>
+<p>The scope of a policy cannot be changed via a policy update.
+This is partially due to implementation limitations, but also from intuition.
+The scope defines where the policy applies.
+Changing the scope intuitively suggests that a new policy is being created.</p>
+<p>Policy updates require the version number to be increased.
+This prevents an attacker from trying to load an older version of the same policy,
+which may be less secure. It ensures that a new signature is always needed to
+update policy.
+You can view the current version number for a policy with with <code>seabeectl show</code> or <code>seabeectl list</code></p>
+<h2 id="seabeectl-remove"><code>seabeectl remove</code><a class="headerlink" href="#seabeectl-remove" title="Anchor link to this section for reference">&para;</a></h2>
+<p>This is used to remove a SeaBee policy.</p>
+<p>example: <code>sudo seabeectl remove -t tests/policies/remove_sample_policy.yaml -s signature.sign</code></p>
+<ul>
+<li><code>-t</code> the path to a SeaBee remove request</li>
+<li><code>-s</code> signature for the remove request, must be signed by same key as the policy being removed</li>
+<li><code>-d</code> as with all signed requests, the digest is needed if the default is not being used</li>
+</ul>
+<p>A SeaBee remove request only includes the name and version of the policy to be removed.</p>
+<div class="language-Yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Example remove request</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sample-policy</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</span></code></pre></div>
+<p>The remove request is important because it ensures that the signature for removing
+a policy is different from the signature for adding a policy.</p>
+<p>To explain why this is important, more context is needed/
+When a SeaBee policy is added, its signature is saved.
+Anyone can view these signatures at <code>/etc/seabee/policy_sigs</code>.
+This means an attacker has access to the policy files and valid signatures for those files.
+If the signature for removing a SeaBee policy was the same as the signature for adding,
+then an attacker could remove any SeaBee policy.</p>
+<h2 id="seabeectl-list-keys"><code>seabeectl list-keys</code><a class="headerlink" href="#seabeectl-list-keys" title="Anchor link to this section for reference">&para;</a></h2>
+<p>Lists all of the keys currently added to SeaBee.</p>
+<p>example: <code>sudo seabeectl list-keys</code></p>
+<p>Specifically, for each key it will display:</p>
+<ul>
+<li><code>Added from:</code> file path were the key was added from</li>
+<li><code>id:</code> unique numerical identifier for the key</li>
+<li><code>Type:</code> the type of key</li>
+<li><code>Size:</code> the length of the key</li>
+</ul>
+<h2 id="seabeectl-show-key"><code>seabeectl show-key</code><a class="headerlink" href="#seabeectl-show-key" title="Anchor link to this section for reference">&para;</a></h2>
+<p>Displays a single SeaBee key. This can also be used to specify if a
+particular key exists.</p>
+<p>example: <code>sudo seabeectl show-key id 0</code></p>
+<p>note: id 0 is always the root key</p>
+<p>You can search for a key using the following fields:</p>
+<ul>
+<li><code>id</code>: the unique numerical identifier that SeaBee assigns for the key</li>
+<li><code>file</code>: SeaBee will load a key from the path specified and check if the key
+at that path matches any key that SeaBee has saved.</li>
+</ul>
+<h2 id="seabeectl-add-key"><code>seabeectl add-key</code><a class="headerlink" href="#seabeectl-add-key" title="Anchor link to this section for reference">&para;</a></h2>
+<p>Add a new verification key to SeaBee.</p>
+<p>example: <code>sudo seabeectl add-key -t new-seabee-public-key.pem</code></p>
+<p>options for this command include</p>
+<ul>
+<li><code>-t</code> the path to the key being added</li>
+<li><code>-s</code> a signature for the key from the root key.
+Only required if <code>--verify-keys</code> enabled in SeaBee config</li>
+<li><code>-d</code> the digest used by signature if it doesn't use the default (SHA3-256)</li>
+</ul>
+<p>Use <code>seabeectl alg</code> to see a list of supported cryptographic algorithms and key formats</p>
+<h2 id="seabeectl-remove-key"><code>seabeectl remove-key</code><a class="headerlink" href="#seabeectl-remove-key" title="Anchor link to this section for reference">&para;</a></h2>
+<p>Remove a SeaBee key.</p>
+<p>example: <code>seabeectl remove-key -t new-seabee-public-key.pem -s signature.sign</code></p>
+<p>Options for this command include</p>
+<ul>
+<li><code>-t</code> the path to the key being removed</li>
+<li><code>-s</code> the path to a signature of the key file from the corresponding private key or the root key</li>
+<li><code>-d</code> the digest used by signature if it doesn't use the default (SHA3-256)</li>
+</ul>
+<p>Removing a key requires passing a path to the key file (pem) and a valid
+signature for that file.
+The signature must be verified using the key itself or the SeaBee root key.
+Removing a key does not automatically revoke any polices that were signed by that key.
+Instead, during reboot, all policies are reloaded and re-verified.
+The removal of a key may cause some policies to generate verification errors on reboot.
+The SeaBee root key cannot be removed, it can only be changed while SeaBee is turned off.</p>
+<h2 id="seabeectl-shutdown"><code>seabeectl shutdown</code><a class="headerlink" href="#seabeectl-shutdown" title="Anchor link to this section for reference">&para;</a></h2>
+<p>Shutdown SeaBee with a shutdown request.</p>
+<p>example: <code>sudo seabeectl shutdown -t shutdown_request.yaml -s shutdown_signature.sign</code></p>
+<p>The shutdown request is a YAML file with Linux machine id from <code>/etc/machine-id</code>.
+This file can be generated with <a href="#seabeectl-shutdown-request"><code>seabeectl shutdown-request</code></a>.
+The shutdown request must be signed with the SeaBee root key.</p>
+<p>Options for this command include</p>
+<ul>
+<li><code>-t</code> the path to the shutdown request file</li>
+<li><code>-s</code> the path to the signature for the shutdown request</li>
+<li><code>-d</code> the digest used by signature if it doesn't use the default (SHA3-256)</li>
+</ul>
+
+
+
+
+
+
+
+  
+    
+  
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="October 29, 2025 21:36:05"><span class="timeago" datetime="2025-10-29T21:36:05+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="October 29, 2025 21:36:05">2025-10-29</span>
+  </span>
+
+    
+    
+    
+      
+  
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Contributors">
+      
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 4a4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1 4-4m0 10c4.42 0 8 1.79 8 4v2H4v-2c0-2.21 3.58-4 8-4"/></svg>
+      
+    </span>
+    <nav>
+      
+        <a href="mailto:42473587+awandke@users.noreply.github.com">Alan Wandke</a>
+    </nav>
+  </span>
+
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.action.edit", "content.code.copy", "content.tooltips", "navigation.indexes", "navigation.instant", "navigation.instant.progress", "navigation.prune", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+        <script src="../js/timeago.min.js"></script>
+      
+        <script src="../js/timeago_mkdocs_material.js"></script>
+      
+        <script src="../js/asciinema-player.min.js"></script>
+      
+    
+  </body>
+</html>

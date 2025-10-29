@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["types"],"struct":["OpenWriteUserMaps","OpenWriteUserProgs","OpenWriteUserSkel","StructOps","WriteUserLinks","WriteUserMaps","WriteUserProgs","WriteUserSkel","WriteUserSkelBuilder"]};

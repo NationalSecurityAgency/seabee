@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["label_file","label_maps","label_task"]};

@@ -1,0 +1,1 @@
+searchState.loadedDescShard("integration_test", 0, "Returns the argument unchanged.\nTests the functionality of the SeaBee userspace with …\nCalls <code>U::from(self)</code>.\nTests the security of the SeaBee userspace with maximum …")

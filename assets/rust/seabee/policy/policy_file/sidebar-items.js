@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["BASE_POLICY_ID"],"struct":["PolicyConfig","PolicyFile","RemovePolicyFile","ShutdownFile"],"trait":["FromYamlPath"]};
