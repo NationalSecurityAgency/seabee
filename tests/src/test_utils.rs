@@ -1,9 +1,42 @@
 // SPDX-License-Identifier: Apache-2.0
 
-use std::{fs, io::ErrorKind, os::unix::fs::PermissionsExt, path::Path};
+use anyhow::anyhow;
+use std::{fs, io::ErrorKind, os::unix::fs::PermissionsExt, path::Path, process::Command};
 
 use libtest_mimic::Failed;
 use nix::sys::{ptrace, signal::Signal::SIGCONT};
+
+pub fn try_rename(target: &str, expect_success: bool) -> Result<(), Failed> {
+    let output = Command::new("sed")
+        .arg("-i")
+        .arg("s/^/newtext/")
+        .arg(target)
+        .output()
+        .map_err(|e| anyhow!("failed to run sed: {e}"))?;
+
+    let code = match output.status.code() {
+        Some(c) => c,
+        None => {
+            return Err(format!(
+                "try_rename on {target} has no return code. possibly killed by signal unexpectedly"
+            )
+            .into())
+        }
+    };
+
+    // Check result
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    if code == 0 && !expect_success {
+        return Err(format!("try_rename on {target} expected failure, but succeeded\nstdout: {stdout}\nstderr: {stderr}").into());
+    } else if code == 4 && expect_success {
+        // we see return code 4 on error
+        return Err(format!("try_rename on {target} expected success, but was denied\nstdout:{stdout}\nstderr: {stderr}").into());
+    } else if code != 0 && code != 4 {
+        return Err(format!("try_rename on {target}: unexpected return code: {code}\nstdout: {stdout}\nstderr:{stderr}").into());
+    }
+    Ok(())
+}
 
 // try chmod and expect permission denied
 pub fn try_chmod(path: &str, expect_success: bool) -> Result<(), Failed> {

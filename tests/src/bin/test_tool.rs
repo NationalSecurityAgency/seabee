@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
 
-use std::io::Write;
 use std::mem::MaybeUninit;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -12,10 +11,6 @@ use bpf::tests::test_tool::*;
 use tests::policy::test_constants;
 
 fn main() -> Result<()> {
-    // create file, TEST_DIR must already exist
-    let mut file = std::fs::File::create(test_constants::TEST_TOOL_FILE)?;
-    file.write_all(b"Hello, World!")?;
-
     // load ebpf skel
     let skel_builder = TestToolSkelBuilder::default();
     let mut open_object = MaybeUninit::uninit();
@@ -48,6 +43,7 @@ fn main() -> Result<()> {
 
     std::fs::remove_file(test_constants::TEST_TOOL_PIN_PATH)?;
     std::fs::remove_dir_all(test_constants::TEST_TOOL_DIR)?;
+    std::fs::remove_file(test_constants::TEST_TOOL_FILE)?;
 
     Ok(())
 }

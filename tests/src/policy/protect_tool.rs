@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use std::{
-    io::ErrorKind,
+    io::{ErrorKind, Write},
     path::Path,
     process::{Child, Command},
     sync::{
@@ -65,6 +65,14 @@ pub fn start_test_tool(level: SecurityLevel) -> Result<Child> {
             ));
         }
     }
+    // create file
+    let mut file = std::fs::File::create(test_constants::TEST_TOOL_FILE).map_err(|e| {
+        anyhow!(
+            "failed to create file {}: {e}",
+            test_constants::TEST_TOOL_FILE
+        )
+    })?;
+    file.write_all(b"Hello, World!")?;
 
     // add key
     Command::new(SEABEECTL_EXE)
@@ -276,6 +284,10 @@ fn deny_chmod_file() -> Result<(), Failed> {
     test_utils::try_chmod(test_constants::TEST_TOOL_FILE, false)
 }
 
+fn deny_rename_file() -> Result<(), Failed> {
+    test_utils::try_rename(test_constants::TEST_TOOL_FILE, false)
+}
+
 // check that protected directory attributes cannot be modified
 fn deny_chmod_dir() -> Result<(), Failed> {
     test_utils::try_chmod(test_constants::TEST_TOOL_DIR, false)
@@ -344,6 +356,7 @@ fn block_tests() -> Vec<Trial> {
         create_test!(deny_open_file),
         create_test!(deny_chmod_file),
         create_test!(deny_chmod_dir),
+        create_test!(deny_rename_file),
         create_test!(deny_policy_overwrite),
     ]
 }

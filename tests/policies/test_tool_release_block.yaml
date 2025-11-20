@@ -5,6 +5,7 @@ scope:
   - ../target/release/test_tool
 files:
   - /etc/seabee_test_tool
+  - /etc/seabee_test_tempfile
 config:
   map_access: block
   file_write_access: block
