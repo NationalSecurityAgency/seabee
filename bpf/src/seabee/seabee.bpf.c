@@ -435,15 +435,15 @@ int BPF_PROG(seabee_inode_setxattr, struct user_namespace *mnt_userns,
 /**
  * @brief prevent rename of a protected inode
  *
- @param old_dentry the old file
+ @param new_dentry the new file which will be replaced by old file
 */
 SEC("lsm/inode_rename")
 int BPF_PROG(seabee_inode_rename, struct inode *old_dir,
              struct dentry *old_dentry, struct inode *new_dir,
              struct dentry *new_dentry, unsigned int flags)
 {
-	return decide_inode_access(INODE_RENAME, old_dentry->d_inode,
-	                           old_dentry->d_name.name);
+	return decide_inode_access(INODE_RENAME, new_dentry->d_inode,
+	                           new_dentry->d_name.name);
 }
 
 /**

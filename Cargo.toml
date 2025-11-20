@@ -23,7 +23,7 @@ zerocopy = { version = "0.8", features = ["derive"] }
 edition = "2021"
 license = "Apache-2.0"
 readme = "README.md"
-rust-version = "1.79"
+rust-version = "1.83"
 version = "1.2.0"
 repository = "https://github.com/NationalSecurityAgency/seabee"
 homepage = "https://code.nsa.gov/seabee/"
