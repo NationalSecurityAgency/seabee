@@ -161,7 +161,8 @@ You can view the current version number for a policy with with `seabeectl show` 
 
 ## `seabeectl remove`
 
-This is used to remove a SeaBee policy.
+This is used to remove a SeaBee policy. 
+This immediately drops protections on all protected objects in the policy. 
 
 example: `sudo seabeectl remove -t tests/policies/remove_sample_policy.yaml -s signature.sign`
 
@@ -177,15 +178,22 @@ name: sample-policy
 version: 1
 ```
 
+If a policy is removed and then re-added, any objects specified in the policy will no longer
+be protected unless they are recreated. This means it is necssary 
+to restart the application after the policy has been added in order for the policy to be enforced.
+If your goal is to change protections on files, then `seabeectl update` is preferable to `remove` and `udpate`. 
+If your goal is to change protections on processes or eBPF maps, then the processes and maps will need to
+be created after the new policy takes effect.
+
 The remove request is important because it ensures that the signature for removing
 a policy is different from the signature for adding a policy.
 
-To explain why this is important, more context is needed/
+To explain why this is important, more context is needed.
 When a SeaBee policy is added, its signature is saved.
 Anyone can view these signatures at `/etc/seabee/policy_sigs`.
 This means an attacker has access to the policy files and valid signatures for those files.
 If the signature for removing a SeaBee policy was the same as the signature for adding,
-then an attacker could remove any SeaBee policy.
+then an attacker could replay a signature to remove any SeaBee policy.
 
 ## `seabeectl list-keys`
 

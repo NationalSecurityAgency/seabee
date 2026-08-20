@@ -233,6 +233,10 @@ version: 1
 
 ![Removed sample policy](./assets/images/tutorial/remove-sample-policy.png)
 
+Now the policy is removed, its protections are gone immediately. 
+If you later re-add the policy, you must also restart any application that it protects. 
+This since simple policy only protects `vi`, which isn't a long running process, it won't be a problem.
+
 ## Removing a SeaBee Key
 
 Ask SeaBee to tell us how to remove a key: `sudo seabeectl remove-key --help`
@@ -284,11 +288,15 @@ reuse the request to shutdown SeaBee again maliciously.
 
 SeaBee shutdown requests are generally used rarely, such as upgrading SeaBee to a
 new version.
-If there is a problem with SeaBee it is safer to remove and re-add SeaBee policies rather
-than shutting Seabee off altogether.
 
 - `rm shutdown_request.yaml`
 - `rm signature.sign`
+
+If there is a problem with SeaBee it is safer to remove and re-add SeaBee policies rather
+than shutting Seabee off altogether.
+When you do remove and re-add a policy, you will need to restart your application for the policy
+to take effect. SeaBee policies are only applied to processes and maps that are created *after* 
+the policy is applied. 
 
 ## Conclusion
 
