@@ -6,7 +6,15 @@ use std::{fs, io::ErrorKind, os::unix::fs::PermissionsExt, path::Path, process::
 use libtest_mimic::Failed;
 use nix::sys::{ptrace, signal::Signal::SIGCONT};
 
-pub fn try_rename(target: &str, expect_success: bool) -> Result<(), Failed> {
+/// Attempts to rename a file using `sed -i` which:
+/// 1. Reads the original file
+/// 2. Creates a temp file with modifications
+/// 3. Renames temp file over the original (destination = target)
+///
+/// This tests file WRITE protection and DESTINATION overwrite protection
+/// via the inode_rename LSM hook (checking new_dentry only).
+/// Different from try_rename_file which tests SOURCE move-away protection.
+pub fn try_rename_sed(target: &str, expect_success: bool) -> Result<(), Failed> {
     let output = Command::new("sed")
         .arg("-i")
         .arg("s/^/newtext/")
@@ -18,7 +26,7 @@ pub fn try_rename(target: &str, expect_success: bool) -> Result<(), Failed> {
         Some(c) => c,
         None => {
             return Err(format!(
-                "try_rename on {target} has no return code. possibly killed by signal unexpectedly"
+                "try_rename_sed on {target} has no return code. possibly killed by signal unexpectedly"
             )
             .into())
         }
@@ -28,12 +36,12 @@ pub fn try_rename(target: &str, expect_success: bool) -> Result<(), Failed> {
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
     if code == 0 && !expect_success {
-        return Err(format!("try_rename on {target} expected failure, but succeeded\nstdout: {stdout}\nstderr: {stderr}").into());
+        return Err(format!("try_rename_sed on {target} expected failure, but succeeded\nstdout: {stdout}\nstderr: {stderr}").into());
     } else if code == 4 && expect_success {
         // we see return code 4 on error
-        return Err(format!("try_rename on {target} expected success, but was denied\nstdout:{stdout}\nstderr: {stderr}").into());
+        return Err(format!("try_rename_sed on {target} expected success, but was denied\nstdout:{stdout}\nstderr: {stderr}").into());
     } else if code != 0 && code != 4 {
-        return Err(format!("try_rename on {target}: unexpected return code: {code}\nstdout: {stdout}\nstderr:{stderr}").into());
+        return Err(format!("try_rename_sed on {target}: unexpected return code: {code}\nstdout: {stdout}\nstderr:{stderr}").into());
     }
     Ok(())
 }
@@ -171,6 +179,32 @@ pub fn try_unlink_file(path: &str, expect_success: bool) -> Result<(), Failed> {
             }
         }
         Err(e) => return Err(format!("Unexpected error during remove_dir_all: {e}").into()),
+    }
+    Ok(())
+}
+
+/// Attempts to rename a file testing that permission is denied
+pub fn try_rename_file(src: &str, dst: &str, expect_success: bool) -> Result<(), Failed> {
+    let result = fs::rename(src, dst);
+
+    match result {
+        Ok(_) => {
+            if !expect_success {
+                return Err(format!(
+                    "try_rename_file from {src} to {dst} expected failure, but succeeded"
+                )
+                .into());
+            }
+        }
+        Err(e) if e.kind() == ErrorKind::PermissionDenied => {
+            if expect_success {
+                return Err(format!(
+                    "try_rename_file from {src} to {dst} expected success, but was denied: {e}"
+                )
+                .into());
+            }
+        }
+        Err(e) => return Err(format!("try_rename_file from {src} to {dst}: unexpected error: {e}").into()),
     }
     Ok(())
 }
