@@ -345,7 +345,7 @@ int BPF_PROG(seabee_file_open, struct file *file)
 	if ((BPF_CORE_READ(file, f_mode) & FMODE_WRITE) == 0) {
 		return ALLOW;
 	}
-	return decide_inode_access(FILE_OPEN, file->f_path.dentry->d_inode,
+	return decide_inode_access(FILE_OPEN, file->f_inode,
 	                           file->f_path.dentry->d_name.name);
 }
 
@@ -515,7 +515,8 @@ SEC("lsm/kernel_read_file")
 int BPF_PROG(seabee_kernel_read_file, struct file *file,
              enum kernel_read_file_id id, bool contents)
 {
-	if (id == READING_MODULE && kmod_modification == (u32)SECURITY_BLOCK) {
+	if ((id == READING_MODULE || id == READING_MODULE_COMPRESSED) &&
+	    kmod_modification == (u32)SECURITY_BLOCK) {
 		log_kernel_read_file(LOG_LEVEL_WARN, LOG_REASON_DENY, id,
 		                     file->f_path.dentry->d_name.name);
 		return DENY;
@@ -549,7 +550,8 @@ SEC("lsm/kernel_load_data")
 int BPF_PROG(seabee_kernel_load_data, enum kernel_load_data_id id,
              bool contents)
 {
-	if (id == LOADING_MODULE && kmod_modification == (u32)SECURITY_BLOCK) {
+	if ((id == LOADING_MODULE || id == LOADING_MODULE_COMPRESSED) &&
+	    kmod_modification == (u32)SECURITY_BLOCK) {
 		log_kernel_load_data(LOG_LEVEL_WARN, LOG_REASON_DENY, id);
 		return DENY;
 	} else if (kmod_modification == (u32)SECURITY_AUDIT) {

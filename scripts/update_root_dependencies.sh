@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -Ee
 
 TOP_DIR=$(dirname "$(dirname "$(realpath "$0" || true)")")
 
