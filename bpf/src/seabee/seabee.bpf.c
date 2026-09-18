@@ -435,13 +435,21 @@ int BPF_PROG(seabee_inode_setxattr, struct user_namespace *mnt_userns,
 /**
  * @brief prevent rename of a protected inode
  *
- @param new_dentry the new file which will be replaced by old file
-*/
+ * @param old_dentry the source file being moved
+ * @param new_dentry the destination file (may be replaced)
+ * @param flags rename flags (e.g., RENAME_EXCHANGE)
+ */
 SEC("lsm/inode_rename")
 int BPF_PROG(seabee_inode_rename, struct inode *old_dir,
              struct dentry *old_dentry, struct inode *new_dir,
              struct dentry *new_dentry, unsigned int flags)
 {
+	/* Moving a protected source away is as damaging as overwriting
+	 * a protected destination - deny both */
+	if (decide_inode_access(INODE_RENAME, old_dentry->d_inode,
+	                        old_dentry->d_name.name) == DENY)
+		return DENY;
+
 	return decide_inode_access(INODE_RENAME, new_dentry->d_inode,
 	                           new_dentry->d_name.name);
 }
