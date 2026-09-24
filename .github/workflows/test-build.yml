@@ -14,11 +14,13 @@ jobs:
       fail-fast: false
       matrix:
         distro:
-          - fedora-41
-          - fedora-42
+          - fedora-43
+          - fedora-44
           - ubuntu-jammy
           - ubuntu-noble
+          - ubuntu-resolute
           - rocky-9
+          - rocky-10
 
     container:
       image: ghcr.io/nationalsecurityagency/seabee-build-${{ matrix.distro }}:latest

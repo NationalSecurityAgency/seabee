@@ -26,11 +26,13 @@ jobs:
       fail-fast: false
       matrix:
         distro:
-          - { name: "fedora-41", dockerfile: "ci/fedora-41.Dockerfile" }
-          - { name: "fedora-42", dockerfile: "ci/fedora-42.Dockerfile" }
+          - { name: "fedora-43", dockerfile: "ci/fedora-43.Dockerfile" }
+          - { name: "fedora-44", dockerfile: "ci/fedora-44.Dockerfile" }
           - { name: "ubuntu-jammy", dockerfile: "ci/ubuntu-jammy.Dockerfile" }
           - { name: "ubuntu-noble", dockerfile: "ci/ubuntu-noble.Dockerfile" }
+          - { name: "ubuntu-resolute", dockerfile: "ci/ubuntu-resolute.Dockerfile" }
           - { name: "rocky-9", dockerfile: "ci/rocky-9.Dockerfile" }
+          - { name: "rocky-10", dockerfile: "ci/rocky-10.Dockerfile" }
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4

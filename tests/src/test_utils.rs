@@ -24,10 +24,12 @@ pub fn try_rename_sed(target: &str, expect_success: bool) -> Result<(), Failed> 
 
     let code = match output.status.code() {
         Some(c) => c,
-        None => return Err(format!(
+        None => {
+            return Err(format!(
             "try_rename_sed on {target} has no return code. possibly killed by signal unexpectedly"
         )
-        .into()),
+            .into())
+        }
     };
 
     // Check result

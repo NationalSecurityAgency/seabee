@@ -527,8 +527,7 @@ int BPF_PROG(seabee_kernel_read_file, struct file *file,
 	if ((id == READING_MODULE || id == READING_MODULE_COMPRESSED) &&
 	    kmod_modification == (u32)SECURITY_BLOCK) {
 #else
-	if ((id == READING_MODULE) &&
-	    kmod_modification == (u32)SECURITY_BLOCK) {
+	if ((id == READING_MODULE) && kmod_modification == (u32)SECURITY_BLOCK) {
 #endif
 		log_kernel_read_file(LOG_LEVEL_WARN, LOG_REASON_DENY, id,
 		                     file->f_path.dentry->d_name.name);
@@ -567,8 +566,7 @@ int BPF_PROG(seabee_kernel_load_data, enum kernel_load_data_id id,
 	if ((id == LOADING_MODULE || id == LOADING_MODULE_COMPRESSED) &&
 	    kmod_modification == (u32)SECURITY_BLOCK) {
 #else
-	if ((id == LOADING_MODULE) &&
-	    kmod_modification == (u32)SECURITY_BLOCK) {
+	if ((id == LOADING_MODULE) && kmod_modification == (u32)SECURITY_BLOCK) {
 #endif
 		log_kernel_load_data(LOG_LEVEL_WARN, LOG_REASON_DENY, id);
 		return DENY;
