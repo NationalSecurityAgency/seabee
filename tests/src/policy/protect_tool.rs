@@ -296,11 +296,7 @@ fn deny_rename_protected_source() -> Result<(), Failed> {
 
     // Try to rename the protected source file to the unprotected destination
     // This should be denied because the source is protected
-    let result = test_utils::try_rename_file(
-        test_constants::TEST_TOOL_FILE,
-        dest_path,
-        false,
-    );
+    let result = test_utils::try_rename_file(test_constants::TEST_TOOL_FILE, dest_path, false);
 
     // Clean up the destination file if it was created (rename failed, so it should still exist)
     let _ = std::fs::remove_file(dest_path);
@@ -316,11 +312,7 @@ fn deny_rename_protected_dest() -> Result<(), Failed> {
 
     // Try to rename the unprotected source over the protected destination
     // This should be denied because the destination is protected
-    let result = test_utils::try_rename_file(
-        src_path,
-        test_constants::TEST_TOOL_FILE,
-        false,
-    );
+    let result = test_utils::try_rename_file(src_path, test_constants::TEST_TOOL_FILE, false);
 
     // Clean up the source file
     let _ = std::fs::remove_file(src_path);
