@@ -115,7 +115,8 @@ docker_install() {
   elif [ $USE_DNF -eq 1 ]; then
     dnf -y install dnf-plugins-core
     if command -v dnf5 &>/dev/null; then
-      dnf config-manager addrepo --from-repofile=https://download.docker.com/linux/"$DISTRO"/docker-ce.repo
+      # use --overwrite to replace the existing repo instead of failing
+      dnf config-manager addrepo --from-repofile=https://download.docker.com/linux/"$DISTRO"/docker-ce.repo --overwrite
     else
       dnf config-manager --add-repo https://download.docker.com/linux/"$DISTRO"/docker-ce.repo
     fi
@@ -138,7 +139,7 @@ docker_check() {
       for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt remove $pkg; done
       docker_install
     elif [ $USE_DNF -eq 1 ]; then
-      dnf remove docker \
+      dnf remove -y docker \
         docker-client \
         docker-client-latest \
         docker-common \

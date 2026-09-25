@@ -45,22 +45,27 @@ python_check() {
     printf "Please install Python %s or newer\n" "$PYTHON_VERSION"
     exit 1
   fi
+
+  export PATH="$HOME/.local/bin:$PATH"
+
   pipx_venv_check "$POETRY"
   if ! command -v "$POETRY" &>/dev/null || ! version_greater_equal "$($POETRY --version | cut -d" " -f3 | tr -d ')')" $POETRY_VERSION; then
     printf "Compatible version of Poetry not detected\n"
     pipx install --force poetry==$POETRY_VERSION
-    pipx ensurepath
-    # shellcheck disable=SC1091
-    source "$HOME/.profile" && poetry completions bash >>~/.bash_completion
+    if [ "$DOCKER" -eq 0 ] && [ -t 1 ]; then
+      # shellcheck disable=SC1091
+      [ -f "$HOME/.profile" ] && source "$HOME/.profile"
+      poetry completions bash >>~/.bash_completion 2>/dev/null || true
+    fi
   fi
+
   pipx_venv_check "$ASCIINEMA"
   if [ "$DOCKER" -eq 0 ] && ! command -v "$ASCIINEMA" &>/dev/null || ! version_greater_equal "$($ASCIINEMA --version | cut -d" " -f2)" $ASCIINEMA_VERSION; then
     printf "Compatible version of Asciinema not detected\n"
     pipx install --force asciinema==$ASCIINEMA_VERSION
-    pipx ensurepath
   fi
-  # shellcheck disable=SC1091
-  source "$HOME/.profile" && poetry install
+
+  poetry install
 }
 
 # install the latest stable verison of rust

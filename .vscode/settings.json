@@ -67,6 +67,8 @@
         "RAII",
         "ringbuf",
         "rustdoc",
+        "rustfmt",
+        "rustup",
         "seccomp",
         "setattr",
         "Sigmask",
