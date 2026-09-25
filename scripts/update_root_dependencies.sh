@@ -138,7 +138,7 @@ docker_check() {
       for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt remove $pkg; done
       docker_install
     elif [ $USE_DNF -eq 1 ]; then
-      dnf remove docker \
+      dnf remove -y docker \
         docker-client \
         docker-client-latest \
         docker-common \
