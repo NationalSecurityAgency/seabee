@@ -11,11 +11,11 @@ test:
   parallel:
     matrix:
       - OS: ubuntu
-        VERSION: [jammy, noble]
+        VERSION: [jammy, noble, resolute]
       - OS: fedora
-        VERSION: [42]
+        VERSION: [43, 44]
       - OS: rocky
-        VERSION: [9]
+        VERSION: [9, 10]
   tags:
     - ${OS}-${VERSION}
   # Convenience script to print the running kernel for determining if the

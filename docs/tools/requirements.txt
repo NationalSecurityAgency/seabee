@@ -1,2 +1,0 @@
-GitPython==3.1.40
-natsort==8.4.0

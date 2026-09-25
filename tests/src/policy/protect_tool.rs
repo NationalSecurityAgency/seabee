@@ -285,7 +285,39 @@ fn deny_chmod_file() -> Result<(), Failed> {
 }
 
 fn deny_rename_file() -> Result<(), Failed> {
-    test_utils::try_rename(test_constants::TEST_TOOL_FILE, false)
+    test_utils::try_rename_sed(test_constants::TEST_TOOL_FILE, false)
+}
+
+/// Check that renaming a protected file (source) is denied
+fn deny_rename_protected_source() -> Result<(), Failed> {
+    // Create a destination file that is not protected
+    let dest_path = test_constants::TEST_TOOL_RENAME_DEST;
+    std::fs::File::create(dest_path).map_err(|e| anyhow!("Failed to create dest file: {e}"))?;
+
+    // Try to rename the protected source file to the unprotected destination
+    // This should be denied because the source is protected
+    let result = test_utils::try_rename_file(test_constants::TEST_TOOL_FILE, dest_path, false);
+
+    // Clean up the destination file if it was created (rename failed, so it should still exist)
+    let _ = std::fs::remove_file(dest_path);
+
+    result
+}
+
+/// Check that renaming over a protected file (destination) is denied
+fn deny_rename_protected_dest() -> Result<(), Failed> {
+    // Create a source file that is not protected
+    let src_path = "/etc/seabee_test_rename_src";
+    std::fs::File::create(src_path).map_err(|e| anyhow!("Failed to create src file: {e}"))?;
+
+    // Try to rename the unprotected source over the protected destination
+    // This should be denied because the destination is protected
+    let result = test_utils::try_rename_file(src_path, test_constants::TEST_TOOL_FILE, false);
+
+    // Clean up the source file
+    let _ = std::fs::remove_file(src_path);
+
+    result
 }
 
 // check that protected directory attributes cannot be modified
@@ -357,6 +389,8 @@ fn block_tests() -> Vec<Trial> {
         create_test!(deny_chmod_file),
         create_test!(deny_chmod_dir),
         create_test!(deny_rename_file),
+        create_test!(deny_rename_protected_source),
+        create_test!(deny_rename_protected_dest),
         create_test!(deny_policy_overwrite),
     ]
 }
