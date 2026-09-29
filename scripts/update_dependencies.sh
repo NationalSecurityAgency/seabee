@@ -46,6 +46,9 @@ python_check() {
     exit 1
   fi
 
+  # ensure pipx for future shells
+  pipx ensurepath
+  # ensure pipx for this shell
   export PATH="$HOME/.local/bin:$PATH"
 
   pipx_venv_check "$POETRY"
