@@ -161,8 +161,8 @@ You can view the current version number for a policy with with `seabeectl show` 
 
 ## `seabeectl remove`
 
-This is used to remove a SeaBee policy. 
-This immediately drops protections on all protected objects in the policy. 
+This is used to remove a SeaBee policy.
+This immediately drops protections on all protected objects in the policy.
 
 example: `sudo seabeectl remove -t tests/policies/remove_sample_policy.yaml -s signature.sign`
 
@@ -179,9 +179,9 @@ version: 1
 ```
 
 If a policy is removed and then re-added, any objects specified in the policy will no longer
-be protected unless they are recreated. This means it is necssary 
+be protected unless they are recreated. This means it is necessary
 to restart the application after the policy has been added in order for the policy to be enforced.
-If your goal is to change protections on files, then `seabeectl update` is preferable to `remove` and `udpate`. 
+If your goal is to change protections on files, then `seabeectl update` is preferable to `remove` and `udpate`.
 If your goal is to change protections on processes or eBPF maps, then the processes and maps will need to
 be created after the new policy takes effect.
 

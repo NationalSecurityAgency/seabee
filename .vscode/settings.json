@@ -69,6 +69,7 @@
         "rustdoc",
         "rustfmt",
         "rustup",
+        "seabeectl",
         "seccomp",
         "setattr",
         "Sigmask",
