@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["BASE_POLICY_ID","BPF_MAP_NAME_LEN","COMM_LEN","MAX_STR_LEN","NO_POL_ID","PATH_MAX"],"enum":["SecurityLevel"],"mod":["types"],"struct":["OpenSeabeeMaps","OpenSeabeeProgs","OpenSeabeeSkel","SeabeeLinks","SeabeeMaps","SeabeeProgs","SeabeeSkel","SeabeeSkelBuilder","StructOps","c_policy_config"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["TestCommandBuilderError"],"struct":["TestCommand","TestCommandBuilder"]};
