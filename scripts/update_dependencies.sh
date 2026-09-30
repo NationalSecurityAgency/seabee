@@ -5,7 +5,7 @@ TOP_DIR=$(dirname "$(dirname "$(realpath "$0" || true)")")
 
 ASCIINEMA_VERSION=2.4.0
 POETRY_VERSION=1.8.3
-PYTHON_VERSION=3.9
+PYTHON_VERSION=3.9 # Minimum python version
 
 ASCIINEMA=asciinema
 export DOCKER="${DOCKER:-0}"
@@ -45,22 +45,30 @@ python_check() {
     printf "Please install Python %s or newer\n" "$PYTHON_VERSION"
     exit 1
   fi
+
+  # ensure pipx for future shells
+  pipx ensurepath
+  # ensure pipx for this shell
+  export PATH="$HOME/.local/bin:$PATH"
+
   pipx_venv_check "$POETRY"
   if ! command -v "$POETRY" &>/dev/null || ! version_greater_equal "$($POETRY --version | cut -d" " -f3 | tr -d ')')" $POETRY_VERSION; then
     printf "Compatible version of Poetry not detected\n"
     pipx install --force poetry==$POETRY_VERSION
-    pipx ensurepath
-    # shellcheck disable=SC1091
-    source "$HOME/.profile" && poetry completions bash >>~/.bash_completion
+    if [ "$DOCKER" -eq 0 ] && [ -t 1 ]; then
+      # shellcheck disable=SC1091
+      [ -f "$HOME/.profile" ] && source "$HOME/.profile"
+      poetry completions bash >>~/.bash_completion 2>/dev/null || true
+    fi
   fi
+
   pipx_venv_check "$ASCIINEMA"
   if [ "$DOCKER" -eq 0 ] && ! command -v "$ASCIINEMA" &>/dev/null || ! version_greater_equal "$($ASCIINEMA --version | cut -d" " -f2)" $ASCIINEMA_VERSION; then
     printf "Compatible version of Asciinema not detected\n"
     pipx install --force asciinema==$ASCIINEMA_VERSION
-    pipx ensurepath
   fi
-  # shellcheck disable=SC1091
-  source "$HOME/.profile" && poetry install
+
+  poetry install
 }
 
 # install the latest stable verison of rust

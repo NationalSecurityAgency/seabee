@@ -233,8 +233,8 @@ version: 1
 
 ![Removed sample policy](./assets/images/tutorial/remove-sample-policy.png)
 
-Now the policy is removed, its protections are gone immediately. 
-If you later re-add the policy, you must also restart any application that it protects. 
+Now the policy is removed, its protections are gone immediately.
+If you later re-add the policy, you must also restart any application that it protects.
 This since simple policy only protects `vi`, which isn't a long running process, it won't be a problem.
 
 ## Removing a SeaBee Key
@@ -295,8 +295,8 @@ new version.
 If there is a problem with SeaBee it is safer to remove and re-add SeaBee policies rather
 than shutting Seabee off altogether.
 When you do remove and re-add a policy, you will need to restart your application for the policy
-to take effect. SeaBee policies are only applied to processes and maps that are created *after* 
-the policy is applied. 
+to take effect. SeaBee policies are only applied to processes and maps that are created *after*
+the policy is applied.
 
 ## Conclusion
 

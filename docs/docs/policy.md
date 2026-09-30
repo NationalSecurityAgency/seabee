@@ -13,7 +13,7 @@ scope and assigns them with the corresponding policy ID including the process it
 Policy ID as itself, which indicates that it falls within the same scope.
 - A SeaBee policy for an executable must be loaded before that executable starts in order
 for SeaBee to associate the path of the executable with the created process and protect eBPF
-objects for that process. If a new policy is added for an existing process, that process 
+objects for that process. If a new policy is added for an existing process, that process
 must be restarted and its eBPF maps recreated in order to be protected by SeaBee.
 When SeaBee runs as a systemd daemon(strongly recommended), SeaBee
 must start before other daemon applications during boot in order to protect them.
@@ -214,11 +214,11 @@ This limits what types of policies can be created since you cannot
 have a shared tool defined in multiple policy scopes.
 This may be addressed in the future through [issue 34](https://github.com/NationalSecurityAgency/seabee/issues/34).
 
-SeaBee only labels processes and eBPF maps at exec-time or creation time respectively. 
-It does not retroactively label processes or maps when a policy is loaded. 
-This has two conseqeunces 
+SeaBee only labels processes and eBPF maps at exec-time or creation time respectively.
+It does not retroactively label processes or maps when a policy is loaded.
+This has two consequences
 
-* A policy must be loaded before the protected application starts. 
-* If a policy is removed adn later re-added, the re-add is a new policy with a new policy id.
-Processes and maps that were created under the old policy are not re-protected. 
+- A policy must be loaded before the protected application starts.
+- If a policy is removed adn later re-added, the re-add is a new policy with a new policy id.
+Processes and maps that were created under the old policy are not re-protected.
 The protected application must be restarted for teh re-added policy to take effect on it.

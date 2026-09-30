@@ -1,6 +1,6 @@
 ARG DOCKER_MIRROR
 
-FROM ${DOCKER_MIRROR}fedora:41
+FROM ${DOCKER_MIRROR}fedora:44
 
 LABEL org.opencontainers.image.source=https://github.com/NationalSecurityAgency/seabee
 

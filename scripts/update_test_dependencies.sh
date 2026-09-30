@@ -40,7 +40,7 @@ install_system_packages() {
     dnf -y install \
       "${common_deps[@]}" \
       bpftool \
-      kernel-devel \
+      kernel-devel-"$(uname -r)" \
       xz
   else
     printf "Your OS was not detected. Dependencies may not be installed.\n"

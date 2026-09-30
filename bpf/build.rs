@@ -14,6 +14,9 @@ const HAS_BPF_MAP_CREATE: &str = "bpf_map_create";
 const HAS_INODE_SETATTR_IDMAP: &str =
     "(*inode_setattr)(struct mnt_idmap *, struct dentry *, struct iattr *)";
 const HAS_INODE_SETXATTR_IDMAP: &str = "(*inode_setxattr)(struct mnt_idmap *, struct dentry *, const char *, const void *, size_t, int)";
+// kernel 6.10+ added READING_MODULE_COMPRESSED and LOADING_MODULE_COMPRESSED enum values
+const HAS_READING_MODULE_COMPRESSED: &str = "READING_MODULE_COMPRESSED";
+const HAS_LOADING_MODULE_COMPRESSED: &str = "LOADING_MODULE_COMPRESSED";
 
 /// Tells Cargo to rerun the build if the supplied file has changed
 fn track_file(header: &str) {
@@ -192,6 +195,8 @@ fn detect_vmlinux_features(vmlinux: &PathBuf) -> Result<HashSet<String>> {
             HAS_INODE_SETATTR_IDMAP,
             HAS_TASK_STORAGE_MAP,
             HAS_INODE_SETXATTR_IDMAP,
+            HAS_READING_MODULE_COMPRESSED,
+            HAS_LOADING_MODULE_COMPRESSED,
         ] {
             if line.contains(feat) {
                 found.insert(feat.to_string());
@@ -223,6 +228,10 @@ fn export_features_to_header(features: HashSet<String>, out_path: &Path) -> Resu
             writeln!(f, "#define HAS_INODE_SETATTR_IDMAP")?;
         } else if flag.contains(HAS_INODE_SETXATTR_IDMAP) {
             writeln!(f, "#define HAS_INODE_SETXATTR_IDMAP")?;
+        } else if flag.contains(HAS_READING_MODULE_COMPRESSED) {
+            writeln!(f, "#define HAS_READING_MODULE_COMPRESSED")?;
+        } else if flag.contains(HAS_LOADING_MODULE_COMPRESSED) {
+            writeln!(f, "#define HAS_LOADING_MODULE_COMPRESSED")?;
         }
     }
 
