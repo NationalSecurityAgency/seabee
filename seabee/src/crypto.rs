@@ -9,7 +9,6 @@ use clap::Args;
 use itertools::Itertools;
 use openssl::{
     self,
-    bn::BigNumContext,
     error::ErrorStack,
     hash::MessageDigest,
     pkey::{Id, PKey, Public},
@@ -67,18 +66,10 @@ impl SeaBeeKey {
     }
 
     /// Two SeaBeeKeys are equal if they are both RSA and have the same modulus (n)
-    /// and exponent (e), or if they are both EC keys and EC_POINT_cmp returns 0.
-    ///
-    /// error if EC_POINT_cmp returns -1 or BN_CTX_new fails
+    /// and exponent (e), or if they are both EC keys with the same curve and public point.
     pub fn try_eq(&self, other: &Self) -> Result<bool> {
         if self.key.id() == Id::EC && other.key.id() == Id::EC {
-            let mut ctx = BigNumContext::new()?;
-            let ec_key = self.key.ec_key()?;
-            return Ok(ec_key.public_key().eq(
-                ec_key.group(),
-                other.key.ec_key()?.public_key(),
-                &mut ctx,
-            )?);
+            return Ok(self.key.public_eq(&other.key));
         }
         if self.key.id() == Id::RSA && other.key.id() == Id::RSA {
             let our_key = self.key.rsa()?;
@@ -86,6 +77,34 @@ impl SeaBeeKey {
             return Ok((our_key.e() == other_key.e()) && (our_key.n() == other_key.n()));
         }
         Ok(false)
+    }
+}
+
+#[cfg(test)]
+mod key_tests {
+    use super::*;
+    use openssl::{
+        ec::{EcGroup, EcKey},
+        nid::Nid,
+    };
+
+    #[test]
+    fn ec_keys_on_different_curves_are_not_equal() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        let mut keys = Vec::new();
+        for (name, curve) in [("p256", Nid::X9_62_PRIME256V1), ("p384", Nid::SECP384R1)] {
+            let group = EcGroup::from_curve_name(curve)?;
+            let key = PKey::from_ec_key(EcKey::generate(&group)?)?;
+            let path = dir.path().join(format!("{name}.pem"));
+            std::fs::write(&path, key.public_key_to_pem()?)?;
+            keys.push(SeaBeeKey::new_key(&path, 0)?);
+        }
+
+        assert!(keys[0].try_eq(&keys[0])?);
+        assert!(keys[1].try_eq(&keys[1])?);
+        assert!(!keys[0].try_eq(&keys[1])?);
+        assert!(!keys[1].try_eq(&keys[0])?);
+        Ok(())
     }
 }
 

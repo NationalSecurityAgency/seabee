@@ -25,9 +25,9 @@ impl super::SeaBeePolicy {
             debug!("try load key: {:?}, {}", key.path, key.sig_digest);
             let sig_path = fs_api::get_sig_path(&key.path, &FileType::Key)?;
             let result = if sig_path.exists() {
-                self.add_key(&key.path, &Some(sig_path), &Some(key.sig_digest))
+                self.add_key(&key.path, &Some(sig_path), &Some(key.sig_digest), false)
             } else {
-                self.add_key(&key.path, &None, &None)
+                self.add_key(&key.path, &None, &None, false)
             };
 
             // report result

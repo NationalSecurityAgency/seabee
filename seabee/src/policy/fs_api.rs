@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 use std::{
     fs,
+    io::ErrorKind,
     path::{Path, PathBuf},
 };
 
@@ -163,17 +164,15 @@ fn get_seabee_policy_path(policy_name: &String) -> Result<PathBuf> {
     Ok(path)
 }
 
-/// Return a path where the key will be stored on disk.
-///
-/// * `input_path` - the path of a key passed in to SeaBee
-pub fn get_seabee_key_path(input_path: &Path) -> Result<PathBuf> {
-    // get the new file path
-    match input_path.file_name() {
-        Some(name) => Ok(Path::new(constants::KEY_DIR).join(name)),
-        None => Err(anyhow!(
-            "get_seabee_path: invalid file name for path '{}'",
-            input_path.display()
-        )),
+/// Return an unused path where the key will be stored on disk.
+pub fn get_seabee_key_path() -> Result<PathBuf> {
+    loop {
+        let path = Path::new(constants::KEY_DIR).join(format!("{}.pem", uuid::Uuid::new_v4()));
+        match fs::metadata(&path) {
+            Ok(_) => continue,
+            Err(error) if error.kind() == ErrorKind::NotFound => return Ok(path),
+            Err(error) => return Err(error.into()),
+        }
     }
 }
 
