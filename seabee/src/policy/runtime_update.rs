@@ -333,6 +333,11 @@ impl super::SeaBeePolicy {
             self.verify_signature(src_path, sig_path, sig_digest, Some(super::ROOT_KEY_ID))?;
         }
         let mut new_key = SeaBeeKey::new_key(src_path, 0)?;
+        for key in self.verification_keys.values() {
+            if key.try_eq(&new_key)? {
+                return Ok(format!("Success! Key already loaded.\n{key}"));
+            }
+        }
         new_key.id = self.get_next_key_id()?;
         new_key.seabee_path = if save_to_disk {
             fs_api::get_seabee_key_path()?
