@@ -50,9 +50,12 @@ impl super::SeaBeePolicy {
             }
             SocketCommand::ListKeys => self.list_keys(),
             SocketCommand::ShowKey(key) => self.show_key(key)?,
-            SocketCommand::AddKey(request) => {
-                self.add_key(&request.target_path, &request.sig_path, &request.digest)?
-            }
+            SocketCommand::AddKey(request) => self.add_key(
+                &request.target_path,
+                &request.sig_path,
+                &request.digest,
+                true,
+            )?,
             SocketCommand::RemoveKey(request) => self.remove_key(request)?,
             SocketCommand::Shutdown(request) => self.shutdown(&request)?,
         };
@@ -323,33 +326,49 @@ impl super::SeaBeePolicy {
         src_path: &PathBuf,
         sig_path: &Option<PathBuf>,
         sig_digest: &Option<SeaBeeDigest>,
+        save_to_disk: bool,
     ) -> Result<String> {
         // Get Key
         if self.verify_keys {
             self.verify_signature(src_path, sig_path, sig_digest, Some(super::ROOT_KEY_ID))?;
         }
-        let mut new_key = SeaBeeKey::new_key(src_path, self.get_next_key_id()?)?;
-        new_key.seabee_path = fs_api::get_seabee_key_path(src_path)?;
+        let mut new_key = SeaBeeKey::new_key(src_path, 0)?;
+        new_key.id = self.get_next_key_id()?;
+        new_key.seabee_path = if save_to_disk {
+            fs_api::get_seabee_key_path()?
+        } else {
+            src_path.clone()
+        };
         new_key.sig_path = fs_api::get_sig_path(&new_key.seabee_path, &FileType::Key)?;
+        new_key.sig_digest = sig_digest.clone().unwrap_or_default();
 
-        // Add key and sig to fs
-        fs_api::save_seabee_file_and_sig(src_path, &new_key.seabee_path, sig_path, &FileType::Key)?;
+        if save_to_disk {
+            // Add key and sig to fs
+            fs_api::save_seabee_file_and_sig(
+                src_path,
+                &new_key.seabee_path,
+                sig_path,
+                &FileType::Key,
+            )?;
+        }
 
         // add to seabee
         self.verification_keys.insert(new_key.id, new_key.clone());
 
-        // Update key list on filesystem
-        if let Err(e) = self.export_keys() {
-            // remove from seabee
-            self.verification_keys.remove(&new_key.id);
-            // remove from fs
-            if let Err(fs_error) =
-                fs_api::delete_seabee_file_and_sig(&new_key.seabee_path, &FileType::Key)
-            {
-                return Err(anyhow!("failed to export new keylist:\n{e}\nFailed to remove new key from filesystem:\n{fs_error}"));
+        if save_to_disk {
+            // Update key list on filesystem
+            if let Err(e) = self.export_keys() {
+                // remove from seabee
+                self.verification_keys.remove(&new_key.id);
+                // remove from fs
+                if let Err(fs_error) =
+                    fs_api::delete_seabee_file_and_sig(&new_key.seabee_path, &FileType::Key)
+                {
+                    return Err(anyhow!("failed to export new keylist:\n{e}\nFailed to remove new key from filesystem:\n{fs_error}"));
+                }
+                // report error
+                return Err(anyhow!("failed to export new keylist\n{e}"));
             }
-            // report error
-            return Err(anyhow!("failed to export new keylist\n{e}"));
         }
         Ok(format!("Success!\n{new_key}"))
     }

@@ -238,6 +238,9 @@ Only required if `--verify-keys` enabled in SeaBee config
 
 Use `seabeectl alg` to see a list of supported cryptographic algorithms and key formats
 
+Adding an already-loaded public key succeeds and returns its existing ID without
+changing its stored key, signature, or digest.
+
 ## `seabeectl remove-key`
 
 Remove a SeaBee key.

@@ -33,4 +33,5 @@ tracing.workspace = true
 tracing-journald = "0.3"
 tracing-subscriber = { version = "0.3", default-features = false, features = ["std", "fmt", "ansi", "registry"] }
 walkdir = "2.5.0"
+uuid = { version = "1", features = ["v4"] }
 zerocopy.workspace = true
