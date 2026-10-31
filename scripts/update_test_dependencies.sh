@@ -37,10 +37,16 @@ install_system_packages() {
       xz-utils
   elif [ "$USE_DNF" -eq 1 ]; then
     dnf -y update
+    # In a container build, uname -r reports the host kernel (e.g. an Ubuntu
+    # -azure kernel) which has no matching kernel-devel in Fedora/Rocky repos.
+    local kernel_devel="kernel-devel-$(uname -r)"
+    if [ "${DOCKER:-0}" -eq 1 ]; then
+      kernel_devel="kernel-devel"
+    fi
     dnf -y install \
       "${common_deps[@]}" \
       bpftool \
-      kernel-devel-"$(uname -r)" \
+      "$kernel_devel" \
       xz
   else
     printf "Your OS was not detected. Dependencies may not be installed.\n"
