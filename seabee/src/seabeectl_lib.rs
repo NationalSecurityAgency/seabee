@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 use std::{
     fs,
-    io::{ErrorKind, Read, Write},
+    io::ErrorKind,
     os::unix::net::UnixStream,
     path::{Path, PathBuf},
 };
@@ -14,7 +14,7 @@ use crate::{
     constants,
     crypto::{self, SeaBeeDigest},
     policy::policy_file,
-    utils,
+    socket_io, utils,
 };
 use bpf::seabee::NO_POL_ID;
 
@@ -238,13 +238,14 @@ pub fn execute_socket_command(command: SocketCommand) -> Result<()> {
     let mut stream = init_stream()?;
 
     // serialize the command and write it to the stream, followed by a newline so the
-    // BufReader knows that it is the end of the command.
-    stream.write_all(serde_json::to_string(&command)?.as_bytes())?;
-    stream.write_all(b"\n")?;
+    // server knows that it is the end of the command.
+    let mut request = serde_json::to_vec(&command)?;
+    request.push(b'\n');
+    socket_io::write_all(&mut stream, &request, constants::SOCKET_CLIENT_IO_TIMEOUT)?;
 
     // wait for the response and print it out to the console
-    let mut response = String::new();
-    stream.read_to_string(&mut response)?;
+    let response = socket_io::read_response(&mut stream, constants::SOCKET_CLIENT_IO_TIMEOUT)?;
+    let response = String::from_utf8(response)?;
 
     if response.contains("SeaBee failed to execute command:") {
         return Err(anyhow!("{}", response));

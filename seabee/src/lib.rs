@@ -20,6 +20,7 @@ mod kernel_api;
 pub mod lockdown;
 pub mod policy;
 pub mod seabeectl_lib;
+mod socket_io;
 mod unload_ebpf;
 pub mod utils;
 
