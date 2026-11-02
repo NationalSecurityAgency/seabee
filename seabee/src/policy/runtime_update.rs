@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 use std::{
     fs,
-    io::{BufRead, Write},
     os::unix::net::UnixStream,
     path::{Path, PathBuf},
 };
@@ -16,6 +15,7 @@ use crate::{
     kernel_api,
     policy::policy_file::ShutdownFile,
     seabeectl_lib::{KeyIdentifier, ObjIdentifier, SignedRequestInfo, SocketCommand},
+    socket_io,
     utils::MACHINE_ID,
     SeaBeeMapHandles,
 };
@@ -459,10 +459,8 @@ impl super::SeaBeePolicy {
 }
 
 fn get_command_from_stream(stream: &mut UnixStream) -> Result<SocketCommand> {
-    let mut reader = std::io::BufReader::new(stream);
-    let mut input = String::new();
-    reader.read_line(&mut input)?;
-    let command: SocketCommand = serde_json::from_str(&input)?;
+    let input = socket_io::read_command(stream, constants::SOCKET_SERVER_IO_TIMEOUT)?;
+    let command: SocketCommand = serde_json::from_slice(&input)?;
     Ok(command)
 }
 
@@ -474,8 +472,12 @@ fn write_result_to_stream(result: Result<String>, stream: &mut UnixStream) {
     };
 
     // write response or error
-    if let Err(e) = stream.write_all(response.as_bytes()) {
-        error!("Failed to write respone to cli.\nError: {e}\nResponse: {response}");
+    if let Err(e) = socket_io::write_response(
+        stream,
+        response.as_bytes(),
+        constants::SOCKET_SERVER_IO_TIMEOUT,
+    ) {
+        error!("Failed to write response to cli.\nError: {e}\nResponse: {response}");
     }
 
     // close socket

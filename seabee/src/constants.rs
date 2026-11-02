@@ -53,5 +53,10 @@ pub const SERVICE_PATH: &str = "/etc/systemd/system/seabee.service";
 // The path to the unix domain socket that seabeectl uses
 pub const SOCKET_PATH: &str = "/run/seabee_sock";
 
-// The read and write timeouts for socket communication between seabee and seabeectl
-pub const SOCKET_TIMEOUT: Option<Duration> = Some(Duration::from_secs(1));
+/// Per-system-call timeout for socket communication between seabee and seabeectl.
+pub const SOCKET_SERVER_IO_TIMEOUT: Duration = Duration::from_secs(1);
+pub const SOCKET_TIMEOUT: Option<Duration> = Some(SOCKET_SERVER_IO_TIMEOUT);
+
+/// Maximum time for seabeectl to complete an I/O operation, including retries
+/// after a transient timeout or interruption.
+pub const SOCKET_CLIENT_IO_TIMEOUT: Duration = Duration::from_secs(5);
