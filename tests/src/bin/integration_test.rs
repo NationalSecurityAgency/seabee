@@ -45,7 +45,10 @@ fn start_seabee_with_logging(
         let timeout = std::time::Duration::from_millis(10);
         while stop_trigger_clone.load(std::sync::atomic::Ordering::SeqCst) {
             if let Err(e) = log_rb.poll(timeout) {
-                tracing::error!("error during poll:\n{e}")
+                // sometimes SIGINT will interrupt poll() which is okay
+                if e.kind() != libbpf_rs::ErrorKind::Interrupted {
+                    tracing::error!("error during poll:\n{e}")
+                }
             }
         }
         Ok(())
