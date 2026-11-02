@@ -22,7 +22,6 @@ This document exists as a way to track what the userspace program does
 * Blocking eBPF pinned map access because the userspace's maps aren't pinned
 * ptrace through `security_ptrace_traceme` is out of scope since it is only invoked
 by the process requesting to be traced and the SeaBee userspace is not doing that
-* The `bpf_send_signal` helper can only signal the `current` task
 * uprobe attaching to the userspace process is not a concern as long as `bpf_probe_write_user` is blocked
 
 ## Threats addressed by other tools
@@ -35,3 +34,10 @@ by the process requesting to be traced and the SeaBee userspace is not doing tha
 * prevention of blocking our necessary permissions
 * Does mounting BPFFS in a container/namespace cause the umount protections to fail?
 * Prevent removing `bpf` from the LSM kernel command-line in the GRUB config
+* Signals sent from eBPF programs. The `bpf_send_signal` and `bpf_send_signal_thread`
+    helpers only signal the `current` task, but a privileged user can attach an eBPF
+    program to a hook that runs in the context of the userspace process, such as a
+    tracepoint on a system call it makes. Recent kernels also provide the
+    `bpf_send_signal_task` kfunc, which can signal any task. These signals are sent
+    by the kernel (`SEND_SIG_PRIV` or `SI_KERNEL`), so `security_task_kill` is not
+    called and they are not blocked.
