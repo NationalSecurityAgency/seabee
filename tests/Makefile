@@ -2,15 +2,25 @@ TEST_SERVICE = test_seabee.service
 TEST_SERVICE_SRC = $(TEST_SERVICE)
 TEST_SERVICE_PATH = /etc/systemd/system/$(TEST_SERVICE)
 
-.PHONY: all test test-release test-policy test-policy-release example-kmod test-kmod
+.PHONY: all test test-release test-policy test-policy-release example-kmod test-kmod generate-test-sigs FORCE
 
 # if missing or outdated, install a new daemon test service into systemd
 $(TEST_SERVICE_PATH): $(TEST_SERVICE_SRC)
 	sudo cp $(TEST_SERVICE_SRC) $(TEST_SERVICE_PATH)
 	sudo systemctl daemon-reload
 
-generate-test-sigs:
+# regenerate signatures only when a key, policy or this script changed,
+# so encrypted keys do not prompt for a password on every run
+SIGS_STAMP = crypto/sigs/.generated
+SIGS_INPUTS = crypto/gen_sigs.sh $(wildcard crypto/keys/*.pem policies/*.yaml ../seabee-root-private-key.pem)
+
+generate-test-sigs: $(SIGS_STAMP)
+
+$(SIGS_STAMP): $(SIGS_INPUTS) $(if $(wildcard shutdown_request.yaml),,FORCE)
 	@./crypto/gen_sigs.sh
+	@touch $(SIGS_STAMP)
+
+FORCE:
 
 # run tests with debug binaries
 test: integration-test policy-test
