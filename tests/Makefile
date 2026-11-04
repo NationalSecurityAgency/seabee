@@ -18,11 +18,16 @@ test: integration-test policy-test
 # run tests with release binaries
 test-release: integration-test-release policy-test-release
 
-integration-test: example-kmod test-kmod
-	sudo ../target/debug/integration_test
+# set SKIP_KMOD=1 to run without building or inserting the test kernel modules
+# and to skip the kernel module tests that need them
+KMOD_TARGETS = $(if $(SKIP_KMOD),,example-kmod test-kmod)
+KMOD_SKIP = $(if $(SKIP_KMOD),--skip security_kmod,)
 
-integration-test-release: example-kmod test-kmod
-	sudo ../target/release/integration_test
+integration-test: $(KMOD_TARGETS)
+	sudo ../target/debug/integration_test $(KMOD_SKIP)
+
+integration-test-release: $(KMOD_TARGETS)
+	sudo ../target/release/integration_test $(KMOD_SKIP)
 
 # launch and test seabee policy with debug binaries
 policy-test: $(TEST_SERVICE_PATH) generate-test-sigs
