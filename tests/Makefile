@@ -32,11 +32,18 @@ policy-test: $(TEST_SERVICE_PATH) generate-test-sigs
 policy-test-release: $(TEST_SERVICE_PATH) generate-test-sigs
 	sudo ../target/release/policy_test --test-threads=1
 
+# the test kernel modules build against the running kernel's headers; after a
+# kernel update they may exist only for the new kernel until reboot
+KMOD_BUILD = /lib/modules/$(shell uname -r)/build
+
+check-kmod-build:
+	@test -d $(KMOD_BUILD) || { echo "$(KMOD_BUILD) not found: reboot into the updated kernel or install headers for $(shell uname -r)"; exit 1; }
+
 # compile and compress 'example_kmod/hello_world_kmod.c'
-example-kmod:
+example-kmod: check-kmod-build
 	@make -C kmod_example test
 
 # remove, compile, and reinstall 'test_kmod/test_kmod.c'
 # also compile 'test_kmod/test_kmod_user.c'
-test-kmod:
+test-kmod: check-kmod-build
 	@make -C kmod_test test
