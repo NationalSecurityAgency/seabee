@@ -16,6 +16,21 @@ pub fn daemon_status() -> Result<(), Failed> {
         .test()
 }
 
+/// Test that the running config includes the saved config and command line options
+pub fn daemon_show_config() -> Result<(), Failed> {
+    // verify_policy comes from the saved config, the others from the command line
+    for expected in ["verify_policy: true", "sigint: true", "log_level: debug"] {
+        TestCommandBuilder::default()
+            .program(seabee::constants::SEABEECTL_EXE)
+            .args(&["show-config"])
+            .expected_rc(0)
+            .expected_stdout(expected)
+            .build()?
+            .test()?;
+    }
+    Ok(())
+}
+
 /// Test that the individual threads of the daemon cannot be killed
 pub fn daemon_deny_tid_sigkill() -> Result<(), Failed> {
     let main_pid = get_daemon_main_pid()?;
