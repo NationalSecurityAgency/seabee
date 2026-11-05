@@ -15,14 +15,27 @@ use crate::command::TestCommandBuilder;
 pub const V1: &str = "policies/test_policy.yaml";
 pub const V2: &str = "policies/test_policy_v2.yaml";
 pub const REMOVE_V2: &str = "policies/remove_test_policy_v2.yaml";
+pub const OVERLAP_AUDIT: &str = "policies/overlap_audit.yaml";
+pub const OVERLAP_BLOCK: &str = "policies/overlap_block.yaml";
+pub const OVERLAP_BLOCK_V2: &str = "policies/overlap_block_v2.yaml";
+pub const REMOVE_OVERLAP_AUDIT: &str = "policies/remove_overlap_audit.yaml";
+pub const REMOVE_OVERLAP_BLOCK_V2: &str = "policies/remove_overlap_block_v2.yaml";
 
 // signatures
 pub const V1_ECDSA: &str = "crypto/sigs/test-policy-ecdsa.sign";
 pub const V2_ECDSA: &str = "crypto/sigs/test-policy-v2-ecdsa.sign";
 pub const REMOVE_V2_ECDSA: &str = "crypto/sigs/remove-test-policy-v2-ecdsa.sign";
+pub const OVERLAP_AUDIT_ECDSA: &str = "crypto/sigs/overlap-audit-ecdsa.sign";
+pub const OVERLAP_BLOCK_ECDSA: &str = "crypto/sigs/overlap-block-ecdsa.sign";
+pub const OVERLAP_BLOCK_V2_ECDSA: &str = "crypto/sigs/overlap-block-v2-ecdsa.sign";
+pub const REMOVE_OVERLAP_AUDIT_ECDSA: &str = "crypto/sigs/remove-overlap-audit-ecdsa.sign";
+pub const REMOVE_OVERLAP_BLOCK_V2_ECDSA: &str = "crypto/sigs/remove-overlap-block-v2-ecdsa.sign";
 pub const ECDSA_PUB_ECDSA_SIG: &str = "crypto/sigs/ecdsa-public-ecdsa-sig.sign";
 pub const ECDSA_PUB_ROOT_SIG: &str = "crypto/sigs/ecdsa-public-root-sig.sign";
 pub const RSA_PUB_ROOT_SIG: &str = "crypto/sigs/rsa-public-root-sig.sign";
+
+// files
+pub const OVERLAP_FILE: &str = "/etc/seabee_test_overlap";
 
 // keys
 pub const ECDSA_PUB: &str = "crypto/keys/ecdsa-public.pem";
