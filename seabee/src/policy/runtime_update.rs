@@ -240,7 +240,7 @@ impl super::SeaBeePolicy {
 
         // remove files from kernel
         for file in old_policy.files.difference(&new_policy.files) {
-            if let Err(e) = kernel_api::unlabel_file(maps, file) {
+            if let Err(e) = kernel_api::unlabel_file(maps, file, new_policy.id) {
                 return Err(anyhow!("Update policy command failed during update\n{e}\nSeaBee state corrupted. Recommended to restart SeaBee and restore correct state."));
             }
         }
