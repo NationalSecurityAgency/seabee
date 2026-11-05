@@ -258,6 +258,13 @@ Instead, during reboot, all policies are reloaded and re-verified.
 The removal of a key may cause some policies to generate verification errors on reboot.
 The SeaBee root key cannot be removed, it can only be changed while SeaBee is turned off.
 
+## `seabeectl show-config`
+
+Shows the configuration SeaBee is running with, in the format of the saved config.
+Unlike `seabeectl config get`, it includes defaults and command line options.
+
+example: `sudo seabeectl show-config`
+
 ## `seabeectl shutdown`
 
 Shutdown SeaBee with a shutdown request.
