@@ -186,6 +186,10 @@ For more information, try `seabeectl --help`, our [seabeectl docs](./seabeectl.m
 
 In production, keys should be generated on a separate system from where SeaBee is deployed.
 
+`seabeectl keygen` generates RSA or ECDSA key pairs,
+see [seabeectl keygen](./seabeectl.md#seabeectl-keygen).
+The `openssl` commands below do the same.
+
 This tutorial uses `openssl` to generate keys.
 SeaBee accepts RSA or ECDSA keys and expects password protected .pem files.
 

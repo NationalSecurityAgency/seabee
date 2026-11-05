@@ -106,6 +106,23 @@ Optionally, a path can be passed to this command as a final argument.
 
 See [shutdown](#seabeectl-shutdown) for how to use the generated file to shutdown SeaBee.
 
+## `seabeectl keygen`
+
+Generate an RSA 2048 or ECDSA P-256 key pair for signing SeaBee policies,
+keys and requests.
+
+example: `seabeectl keygen -a ecdsa -o /path/to/dir`
+
+This writes `ecdsa-private-key.pem` and `ecdsa-public-key.pem`.
+The default algorithm is RSA and the default directory is the current one.
+The private key is encrypted with AES-256 and a passphrase that is prompted
+twice, the same format as `openssl genpkey -aes256`.
+`--nopass` writes the private key unencrypted; use it only for testing.
+Existing files are never overwritten.
+
+To use the key pair as the SeaBee root key, install the public key:
+`sudo cp ecdsa-public-key.pem /etc/seabee/seabee_root_key.pem`
+
 ## `seabeectl list`
 
 Shows a list of all currently loaded SeaBee policies
