@@ -100,10 +100,9 @@ If paths are scopes are symbolic links to binaries, it will not work correctly.
 Seabee will not follow symbolic links.
 This is an open issue and can be see at [Issue 12](https://github.com/NationalSecurityAgency/seabee/issues/12).
 
-SeaBee implements a scope by storing the policy ID for each protected object.
-Currently each object can only have one policy ID assigned to it.
-This limits policy flexibility since two different policies cannot have overlapping scopes.
-This is being addressed in [issue 34](https://github.com/NationalSecurityAgency/seabee/issues/34).
+SeaBee implements a scope by storing the policy IDs for each protected object.
+An object can have up to 8 policy IDs, so policies can have overlapping scopes.
+A process that executes a path in the scope of several policies belongs to all of them.
 Assigning a policy ID to an object is sometimes referred to as
 "Labeling". The following diagram shows the basic runtime labeling rules for SeaBee.
 
@@ -199,20 +198,21 @@ SeaBee enabled.
 
 ![Example: Accessing an eBPF map](./assets/images/diagrams/seabee-map-access.png)
 
-When answering "Is some process allowed to access some object?", SeaBee considers two things:
+When answering "Is some process allowed to access some object?", SeaBee checks every policy of the object:
 
-1. Does the process have the same Policy ID (scope) as the object?
-1. If not, does the policy config for the object's policy have an 'audit' or 'allow' action?
+1. Does the process have the Policy ID of this policy?
+1. If not, does the policy config of this policy have an 'audit' or 'allow' action?
 Since these actions grant access to an external process.
+
+The access is allowed only if every policy of the object allows it.
+No policy takes precedence: when policies overlap, the strictest action applies.
 
 Actions in the Policy Config are only granular to the class of protected object not to each
 particular object. This means that you cannot have one map that is 'audit' and a different map
 that is 'block' for the same policy scope/executable.
 
-Currently, an executable or a file can only have one SeaBee policy ID.
-This limits what types of policies can be created since you cannot
-have a shared tool defined in multiple policy scopes.
-This may be addressed in the future through [issue 34](https://github.com/NationalSecurityAgency/seabee/issues/34).
+An executable or a file can have up to 8 SeaBee policy IDs.
+A policy fails to load if one of its files or scope paths already has 8.
 
 SeaBee only labels processes and eBPF maps at exec-time or creation time respectively.
 It does not retroactively label processes or maps when a policy is loaded.
