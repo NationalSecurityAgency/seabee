@@ -46,7 +46,7 @@ pub fn verify_seabee_unloaded() -> Result<()> {
 
     let max_wait = 5;
     let mut waited = 0;
-    for _ in 1..max_wait {
+    for _ in 0..max_wait {
         if fs::OpenOptions::new()
             .create(true)
             .append(true)
