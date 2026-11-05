@@ -2,12 +2,19 @@
 use std::{
     fs,
     io::{ErrorKind, Read, Write},
-    os::unix::net::UnixStream,
+    os::unix::{fs::OpenOptionsExt, net::UnixStream},
     path::{Path, PathBuf},
 };
 
 use anyhow::{anyhow, Result};
-use clap::{Args, Parser, Subcommand};
+use clap::{Args, Parser, Subcommand, ValueEnum};
+use openssl::{
+    ec::{EcGroup, EcKey},
+    nid::Nid,
+    pkey::PKey,
+    rsa::Rsa,
+    symm::Cipher,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -60,6 +67,38 @@ pub enum LocalCommand {
         #[arg(default_value = "shutdown_request.yaml")]
         path: PathBuf,
     },
+    /// Generate a key pair for signing SeaBee policies, keys and requests
+    ///
+    /// Writes <alg>-private-key.pem and <alg>-public-key.pem. The private key is
+    /// encrypted with AES-256 and a passphrase unless --nopass is given.
+    /// Existing files are never overwritten. To use the public key as the
+    /// SeaBee root key, copy it to /etc/seabee/seabee_root_key.pem.
+    Keygen(KeygenInfo),
+}
+
+/// Signature algorithms `seabeectl keygen` can create keys for
+#[derive(Clone, Copy, Debug, ValueEnum)]
+pub enum KeygenAlg {
+    /// RSA 2048
+    Rsa,
+    /// ECDSA with NIST curve P-256
+    Ecdsa,
+}
+
+/// Information needed to generate a key pair
+#[derive(Args, Clone, Debug)]
+pub struct KeygenInfo {
+    /// Signature algorithm of the key pair
+    #[arg(short, long, value_enum, default_value_t = KeygenAlg::Rsa)]
+    pub alg: KeygenAlg,
+
+    /// Directory for the key files
+    #[arg(short, long, default_value = ".")]
+    pub out_dir: PathBuf,
+
+    /// Will not prompt for a passphrase and writes the private key unencrypted. Unencrypted private keys should not be used in production. Default is false (passphrase required).
+    #[arg(short, long, default_value = "false")]
+    pub nopass: bool,
 }
 
 #[derive(Clone, Debug, Subcommand)]
@@ -263,6 +302,7 @@ pub fn execute_local_command(cmd: LocalCommand) -> Result<()> {
         LocalCommand::Clean(subcmd) => seabeectl_clean(subcmd)?,
         LocalCommand::Config(subcmd) => seabeectl_config(subcmd)?,
         LocalCommand::ShutdownRequest { path } => seabeectl_generate_shutdown(path)?,
+        LocalCommand::Keygen(info) => seabeectl_keygen(info)?,
     };
 
     println!("{output}");
@@ -326,6 +366,60 @@ fn seabeectl_generate_shutdown(path: &PathBuf) -> Result<String> {
     Ok(format!("Shutdown file written to {}", path.display()))
 }
 
+fn seabeectl_keygen(info: &KeygenInfo) -> Result<String> {
+    let (name, key) = match info.alg {
+        KeygenAlg::Rsa => ("rsa", PKey::from_rsa(Rsa::generate(2048)?)?),
+        KeygenAlg::Ecdsa => {
+            let group = EcGroup::from_curve_name(Nid::X9_62_PRIME256V1)?;
+            ("ecdsa", PKey::from_ec_key(EcKey::generate(&group)?)?)
+        }
+    };
+    let private_path = info.out_dir.join(format!("{name}-private-key.pem"));
+    let public_path = info.out_dir.join(format!("{name}-public-key.pem"));
+    for path in [&private_path, &public_path] {
+        if path.exists() {
+            return Err(anyhow!("refusing to overwrite '{}'", path.display()));
+        }
+    }
+
+    let private_pem = if info.nopass {
+        key.private_key_to_pem_pkcs8()?
+    } else {
+        let passphrase = rpassword::prompt_password("Enter pem passphrase for private key:")?;
+        if passphrase.is_empty() {
+            return Err(anyhow!(
+                "empty passphrase, use --nopass for an unencrypted private key"
+            ));
+        }
+        if passphrase != rpassword::prompt_password("Verify pem passphrase:")? {
+            return Err(anyhow!("passphrases do not match"));
+        }
+        // same format as `openssl genpkey -aes256`: encrypted PKCS#8, AES-256-CBC
+        key.private_key_to_pem_pkcs8_passphrase(Cipher::aes_256_cbc(), passphrase.as_bytes())?
+    };
+
+    write_new_file(&private_path, &private_pem, 0o600)?;
+    write_new_file(&public_path, &key.public_key_to_pem()?, 0o644)?;
+    Ok(format!(
+        "Wrote private key to '{}'\nWrote public key to '{}'",
+        private_path.display(),
+        public_path.display()
+    ))
+}
+
+/// Creates `path` with `mode` and writes `contents`; fails if `path` exists
+fn write_new_file(path: &Path, contents: &[u8], mode: u32) -> Result<()> {
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .mode(mode)
+        .open(path)
+        .map_err(|e| anyhow!("failed to create '{}'\n{e}", path.display()))?;
+    file.write_all(contents)
+        .map_err(|e| anyhow!("failed to write '{}'\n{e}", path.display()))?;
+    Ok(())
+}
+
 fn init_stream() -> Result<UnixStream> {
     let stream = match UnixStream::connect(constants::SOCKET_PATH) {
         Ok(sock) => sock,
@@ -346,4 +440,60 @@ fn init_stream() -> Result<UnixStream> {
     stream.set_read_timeout(constants::SOCKET_TIMEOUT)?;
     stream.set_write_timeout(constants::SOCKET_TIMEOUT)?;
     Ok(stream)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::os::unix::fs::PermissionsExt;
+
+    fn keygen(alg: KeygenAlg, out_dir: &Path) -> Result<String> {
+        seabeectl_keygen(&KeygenInfo {
+            alg,
+            out_dir: out_dir.to_path_buf(),
+            nopass: true,
+        })
+    }
+
+    #[test]
+    fn test_keygen_writes_matching_key_pair() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        for (alg, name, bits) in [
+            (KeygenAlg::Rsa, "rsa", 2048),
+            (KeygenAlg::Ecdsa, "ecdsa", 256),
+        ] {
+            keygen(alg, dir.path())?;
+            let private_path = dir.path().join(format!("{name}-private-key.pem"));
+            let public_path = dir.path().join(format!("{name}-public-key.pem"));
+            let private_key = PKey::private_key_from_pem(&fs::read(&private_path)?)?;
+            let public_key = PKey::public_key_from_pem(&fs::read(&public_path)?)?;
+            assert_eq!(private_key.bits(), bits);
+            assert_eq!(
+                private_key.public_key_to_der()?,
+                public_key.public_key_to_der()?
+            );
+            let mode = fs::metadata(&private_path)?.permissions().mode() & 0o777;
+            assert_eq!(mode & 0o077, 0, "private key readable by others: {mode:o}");
+            // accepted as a SeaBee verification key
+            crypto::SeaBeeKey::new_key(&public_path, 1)?;
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn test_keygen_refuses_to_overwrite() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        keygen(KeygenAlg::Ecdsa, dir.path())?;
+        let public_path = dir.path().join("ecdsa-public-key.pem");
+        let before = fs::read(&public_path)?;
+        assert!(keygen(KeygenAlg::Ecdsa, dir.path()).is_err());
+        assert_eq!(before, fs::read(&public_path)?);
+        Ok(())
+    }
+
+    #[test]
+    fn test_keygen_missing_out_dir() {
+        let dir = tempfile::tempdir().unwrap();
+        assert!(keygen(KeygenAlg::Rsa, &dir.path().join("missing")).is_err());
+    }
 }

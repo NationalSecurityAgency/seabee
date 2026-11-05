@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-/// This file tests the local commands of seabeectl including "alg", "sign", and "verify"
+/// This file tests the local commands of seabeectl including "alg", "sign", "verify" and "keygen"
 /// sign will use keys besides ECDSA or RSA since there is no reason to restrict it.
 /// However, verify mirrors the seabeectl verify process and will not allow
 /// key types besides ECDSA or RSA
@@ -94,6 +94,38 @@ fn seabeectl_alg() -> Result<(), libtest_mimic::Failed> {
         .test()
 }
 
+/// Keys from `seabeectl keygen` sign and verify, and keygen never overwrites them
+fn seabeectl_keygen_sign_verify() -> Result<(), libtest_mimic::Failed> {
+    // cannot have generic path due to parallelism
+    let dir = "keygen_test_keys";
+    let sig = "keygen_test.sign";
+    let _ = fs::remove_dir_all(dir);
+    fs::create_dir(dir)?;
+    for alg in ["rsa", "ecdsa"] {
+        TestCommandBuilder::default()
+            .program("seabeectl")
+            .args(&["keygen", "-a", alg, "-o", dir, "--nopass"])
+            .expected_rc(0)
+            .expected_stdout("Wrote public key")
+            .build()?
+            .test()?;
+        TestCommandBuilder::default()
+            .program("seabeectl")
+            .args(&["keygen", "-a", alg, "-o", dir, "--nopass"])
+            .expected_rc(1)
+            .expected_stderr("refusing to overwrite")
+            .build()?
+            .test()?;
+        let private = format!("{dir}/{alg}-private-key.pem");
+        let public = format!("{dir}/{alg}-public-key.pem");
+        seabeectl_sign(POLICY, &private, sig, SHA3, 0, "Success", "")?;
+        seabeectl_verify(POLICY, &public, sig, SHA3, 0, "Verified OK", "")?;
+        fs::remove_file(sig)?;
+    }
+    fs::remove_dir_all(dir)?;
+    Ok(())
+}
+
 fn seabeectl_local_invalid_digest() -> Result<(), libtest_mimic::Failed> {
     let sig = "invalid_sig"; // will not be created
     seabeectl_sign(POLICY, EC_PRIV, sig, "md5", 2, "", "invalid value")?;
@@ -171,6 +203,7 @@ fn seabeectl_sign_verify_rsa() -> Result<(), libtest_mimic::Failed> {
 pub fn tests() -> Vec<libtest_mimic::Trial> {
     vec![
         create_test!(seabeectl_alg),
+        create_test!(seabeectl_keygen_sign_verify),
         create_test!(seabeectl_local_invalid_digest),
         create_test!(seabeectl_local_invalid_key_ext),
         create_test!(seabeectl_local_file_not_found),
