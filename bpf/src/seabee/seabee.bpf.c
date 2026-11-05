@@ -56,10 +56,10 @@ struct path_to_pol_id {
 	__uint(type, BPF_MAP_TYPE_HASH);
 	/// @brief The name of the file
 	__type(key, char[PATH_MAX]);
-	/// @brief The policy id for this file
-	__type(value, u32);
+	/// @brief The policy ids for this file
+	__type(value, struct pol_ids);
 };
-/// @brief Maps a filename to a policy id
+/// @brief Maps a filename to policy ids
 struct path_to_pol_id path_to_pol_id SEC(".maps");
 
 /// @brief storage path buffers which cannot fit on ebpf stack
@@ -109,18 +109,59 @@ type_to_security_level(enum EventType type, u32 policy_id)
 	}
 }
 
+/**
+ * @brief finds the strictest security level of the policies of an object
+ * that the subject does not belong to. Every policy of an object must allow
+ * an access.
+ *
+ * @param type the event type
+ * @param obj_ids the policy ids of the object
+ * @param subj_ids the policy ids of the subject, may be NULL
+ * @param level_pol_id set to the policy id that gave the result
+ *
+ * @return the strictest security level, SECURITY_ALLOW if none applies
+ */
+static __always_inline enum SecurityLevel
+decide_security_level(enum EventType type, const struct pol_ids *obj_ids,
+                      const struct pol_ids *subj_ids, u32 *level_pol_id)
+{
+	enum SecurityLevel result = SECURITY_ALLOW;
+	*level_pol_id             = NO_POL_ID;
+#pragma unroll
+	for (int i = 0; i < MAX_POL_IDS; i++) {
+		u32 obj_pol_id = obj_ids->ids[i];
+		if (!is_valid_policy_id(obj_pol_id) ||
+		    has_pol_id(subj_ids, obj_pol_id)) {
+			continue;
+		}
+		enum SecurityLevel level = type_to_security_level(type, obj_pol_id);
+		if (level != SECURITY_ALLOW && level != SECURITY_AUDIT &&
+		    level != SECURITY_BLOCK) {
+			*level_pol_id = obj_pol_id;
+			return level;
+		}
+		if (level > result) {
+			result        = level;
+			*level_pol_id = obj_pol_id;
+		}
+	}
+	return result;
+}
+
 static __always_inline u32 decide_inode_access(enum InodeAction     action,
                                                struct inode        *inode,
                                                const unsigned char *name)
 {
-	u32 inode_pol_id = get_inode_pol_id(inode);
-	if (inode_pol_id == NO_POL_ID) {
+	struct pol_ids *inode_ids = get_inode_pol_ids(inode);
+	if (!inode_ids) {
 		return ALLOW;
 	}
-	u32 pid_pol_id = get_task_pol_id();
 
-	// Same policy id: Allow
-	if (pid_pol_id == inode_pol_id) {
+	// take action based on security level
+	u32                inode_pol_id = NO_POL_ID;
+	enum SecurityLevel level        = decide_security_level(
+        EVENT_TYPE_FILE_ACCESS, inode_ids, get_task_pol_ids(), &inode_pol_id);
+	if (level == SECURITY_ALLOW) {
 		return ALLOW;
 	}
 
@@ -129,9 +170,6 @@ static __always_inline u32 decide_inode_access(enum InodeAction     action,
 		name = (const unsigned char *)"<unknown file name>";
 	}
 
-	// take action based on security level
-	enum SecurityLevel level =
-		type_to_security_level(EVENT_TYPE_FILE_ACCESS, inode_pol_id);
 	switch (level) {
 	case SECURITY_ALLOW:
 		return ALLOW;
@@ -205,20 +243,15 @@ static __always_inline char *thread_safe_write_str_to_path(const char *data)
 SEC("lsm/bpf_map")
 int BPF_PROG(seabee_bpf_map, struct bpf_map *map, fmode_t fmode, int ret)
 {
-	u32 map_pol_id = get_map_pol_id(map);
-	if (map_pol_id == NO_POL_ID) {
-		return ALLOW;
-	}
-	u32 pid_pol_id = get_task_pol_id();
-
-	// Same policy id: Allow
-	if (pid_pol_id == map_pol_id) {
+	struct pol_ids *map_ids = get_map_pol_ids(map);
+	if (!map_ids) {
 		return ALLOW;
 	}
 
 	// take action based on config
-	enum SecurityLevel level =
-		type_to_security_level(EVENT_TYPE_BPF_MAP, map_pol_id);
+	u32                map_pol_id = NO_POL_ID;
+	enum SecurityLevel level      = decide_security_level(
+        EVENT_TYPE_BPF_MAP, map_ids, get_task_pol_ids(), &map_pol_id);
 	switch (level) {
 	case SECURITY_ALLOW:
 		return ALLOW;
@@ -288,44 +321,54 @@ int BPF_PROG(seabee_task_kill, struct task_struct *p,
              int ret)
 {
 	// allow if no seabee policy
-	u32 target_pol_id = get_target_task_pol_id(p);
-	if (!target_pol_id) {
+	struct pol_ids *target_ids = get_target_task_pol_ids(p);
+	if (!target_ids) {
 		return ALLOW;
 	}
-	// allow if same seabee policy
-	u32 sender_pol_id = get_task_pol_id();
-	if (target_pol_id == sender_pol_id) {
-		return ALLOW;
-	}
-	// allow if no policy has been removed
-	struct c_policy_config *cfg = get_policy_config(target_pol_id);
-	if (!cfg) {
-		return ALLOW;
-	}
-	// allow if policy config is allow
-	if (cfg->signal_access == SECURITY_ALLOW) {
-		return ALLOW;
-	}
-	// allow if not blocked by signal_allow_mask
-	if (sig == ZERO || (1ULL << (sig - 1)) & cfg->signal_allow_mask) {
-		log_task_kill(LOG_LEVEL_DEBUG, LOG_REASON_ALLOW, p, sig, target_pol_id);
-		return ALLOW;
-	}
+	struct pol_ids *sender_ids = get_task_pol_ids();
 
-	// otherwise audit or block and log
-	if (cfg->signal_access == SECURITY_AUDIT) {
-		log_task_kill(LOG_LEVEL_INFO, LOG_REASON_AUDIT, p, sig, target_pol_id);
-		return ALLOW;
-	} else if (cfg->signal_access == SECURITY_BLOCK) {
-		log_task_kill(LOG_LEVEL_WARN, LOG_REASON_DENY, p, sig, target_pol_id);
-		return DENY;
-	} else {
-		u64 data[] = { cfg->signal_access };
-		log_generic_msg(LOG_LEVEL_ERROR, LOG_REASON_ERROR,
-		                "task_kill: nonexistent security level: %d", data,
-		                sizeof(data));
-		return DENY;
+	// every policy of the target must allow the signal
+#pragma unroll
+	for (int i = 0; i < MAX_POL_IDS; i++) {
+		u32 target_pol_id = target_ids->ids[i];
+		// skip if no policy or same seabee policy
+		if (target_pol_id == NO_POL_ID ||
+		    has_pol_id(sender_ids, target_pol_id)) {
+			continue;
+		}
+		// skip if policy has been removed
+		struct c_policy_config *cfg = get_policy_config(target_pol_id);
+		if (!cfg) {
+			continue;
+		}
+		// skip if policy config is allow
+		if (cfg->signal_access == SECURITY_ALLOW) {
+			continue;
+		}
+		// skip if not blocked by signal_allow_mask
+		if (sig == ZERO || (1ULL << (sig - 1)) & cfg->signal_allow_mask) {
+			log_task_kill(LOG_LEVEL_DEBUG, LOG_REASON_ALLOW, p, sig,
+			              target_pol_id);
+			continue;
+		}
+
+		// otherwise audit or block and log
+		if (cfg->signal_access == SECURITY_AUDIT) {
+			log_task_kill(LOG_LEVEL_INFO, LOG_REASON_AUDIT, p, sig,
+			              target_pol_id);
+		} else if (cfg->signal_access == SECURITY_BLOCK) {
+			log_task_kill(LOG_LEVEL_WARN, LOG_REASON_DENY, p, sig,
+			              target_pol_id);
+			return DENY;
+		} else {
+			u64 data[] = { cfg->signal_access };
+			log_generic_msg(LOG_LEVEL_ERROR, LOG_REASON_ERROR,
+			                "task_kill: nonexistent security level: %d", data,
+			                sizeof(data));
+			return DENY;
+		}
 	}
+	return ALLOW;
 }
 
 // from include/linux/fs.h
@@ -596,39 +639,36 @@ int BPF_PROG(seabee_ptrace_access_check, struct task_struct *child,
              unsigned int mode, int ret)
 {
 	// allow if tracee not tracked by SeaBee
-	u32 tracee_label = get_target_task_pol_id(child);
-	if (!tracee_label) {
+	struct pol_ids *tracee_ids = get_target_task_pol_ids(child);
+	if (!tracee_ids) {
 		return ALLOW;
 	}
 
 	// otherwise take action based on config
-	u32 tracer_label = get_task_pol_id();
-	if (tracer_label != tracee_label) {
-		enum SecurityLevel level = type_to_security_level(
-			EVENT_TYPE_PTRACE_ACCESS_CHECK, tracee_label);
-		switch (level) {
-		case SECURITY_ALLOW:
-			return ALLOW;
-		case SECURITY_AUDIT:
-			log_ptrace_access_check(LOG_LEVEL_INFO, LOG_REASON_AUDIT, child,
-			                        mode, tracee_label);
-			return ALLOW;
-		case SECURITY_BLOCK:
-			// info level because this hook generates a lot of noise
-			log_ptrace_access_check(LOG_LEVEL_INFO, LOG_REASON_DENY, child,
-			                        mode, tracee_label);
-			return DENY;
-		default: {
-			u64 data[] = { level };
-			log_generic_msg(
-				LOG_LEVEL_ERROR, LOG_REASON_ERROR,
-				"ptrace_access_check: nonexistent security level: %d", data,
-				sizeof(data));
-			return DENY;
-		}
-		}
+	u32                tracee_label = NO_POL_ID;
+	enum SecurityLevel level =
+		decide_security_level(EVENT_TYPE_PTRACE_ACCESS_CHECK, tracee_ids,
+	                          get_task_pol_ids(), &tracee_label);
+	switch (level) {
+	case SECURITY_ALLOW:
+		return ALLOW;
+	case SECURITY_AUDIT:
+		log_ptrace_access_check(LOG_LEVEL_INFO, LOG_REASON_AUDIT, child, mode,
+		                        tracee_label);
+		return ALLOW;
+	case SECURITY_BLOCK:
+		// info level because this hook generates a lot of noise
+		log_ptrace_access_check(LOG_LEVEL_INFO, LOG_REASON_DENY, child, mode,
+		                        tracee_label);
+		return DENY;
+	default: {
+		u64 data[] = { level };
+		log_generic_msg(LOG_LEVEL_ERROR, LOG_REASON_ERROR,
+		                "ptrace_access_check: nonexistent security level: %d",
+		                data, sizeof(data));
+		return DENY;
 	}
-	return ALLOW;
+	}
 }
 
 /**
@@ -676,7 +716,7 @@ int BPF_PROG(seabee_label_sock, struct socket *sock, struct sockaddr *address,
              int addrlen)
 {
 	// ignore sockets not created by SeaBee
-	if (BASE_POLICY_ID != get_task_pol_id()) {
+	if (!has_pol_id(get_task_pol_ids(), BASE_POLICY_ID)) {
 		return ALLOW;
 	}
 
@@ -722,8 +762,7 @@ int BPF_PROG(seabeectl_auth, struct sock *sock, struct sock *other,
 {
 	u32 *sock_label = bpf_sk_storage_get(&sk_storage, other, 0, 0);
 	if (sock_label && *sock_label == BASE_POLICY_ID) {
-		u32 task_id = get_task_pol_id();
-		if (task_id != BASE_POLICY_ID) {
+		if (!has_pol_id(get_task_pol_ids(), BASE_POLICY_ID)) {
 			log_generic(LOG_LEVEL_WARN, LOG_REASON_DENY,
 			            EVENT_TYPE_UNIX_STREAM_CONNECT, BASE_POLICY_ID);
 			return DENY;
@@ -759,10 +798,11 @@ int BPF_PROG(seabee_label_process, struct linux_binprm *bprm, int ret)
 
 	// Label task if path is in scope
 	// TODO: this does not account for symbolic links, see https://github.com/NationalSecurityAgency/seabee/issues/12
-	u32 *policy_id = bpf_map_lookup_elem(&path_to_pol_id, path);
-	if (policy_id) {
+	struct pol_ids *pol_ids = bpf_map_lookup_elem(&path_to_pol_id, path);
+	if (pol_ids) {
 		struct task_struct *task = get_task();
-		label_task(task, bprm->file->f_path.dentry->d_name.name, *policy_id);
+		label_task_with_ids(task, bprm->file->f_path.dentry->d_name.name,
+		                    pol_ids);
 	}
 
 	return ALLOW;
@@ -776,13 +816,13 @@ int BPF_PROG(seabee_label_child_process, struct task_struct *child_task,
              unsigned long clone_flags)
 {
 	// don't label if parent has no label
-	u32 parent_task_pol_id = get_task_pol_id();
-	if (parent_task_pol_id == NO_POL_ID) {
+	struct pol_ids *parent_ids = get_task_pol_ids();
+	if (!has_valid_pol_id(parent_ids)) {
 		return ALLOW;
 	}
 
-	label_task(child_task, (const unsigned char *)child_task->comm,
-	           parent_task_pol_id);
+	label_task_with_ids(child_task, (const unsigned char *)child_task->comm,
+	                    parent_ids);
 	return ALLOW;
 }
 
@@ -850,8 +890,17 @@ SEC("lsm/d_instantiate")
 int BPF_PROG(seabee_label_pin, struct dentry *dentry, struct inode *inode)
 {
 	struct seabee_task_data *data = get_task_data();
-	if (data && data->pol_id != NO_POL_ID && data->is_pinning) {
-		label_inode(dentry, inode, data->pol_id);
+	if (!data || !data->is_pinning) {
+		return ALLOW;
+	}
+	// label with each policy that protects pins
+#pragma unroll
+	for (int i = 0; i < MAX_POL_IDS; i++) {
+		u32                     policy_id = data->pol_ids.ids[i];
+		struct c_policy_config *cfg       = get_policy_config(policy_id);
+		if (cfg && cfg->protect_pins) {
+			label_inode(dentry, inode, policy_id);
+		}
 	}
 	return ALLOW;
 }
@@ -881,11 +930,11 @@ int BPF_PROG(seabee_label_inode_runtime, struct dentry *dentry,
              struct inode *inode)
 {
 	// don't label if parent has no label
-	u32 parent_pol_id = get_inode_pol_id(dentry->d_parent->d_inode);
-	if (parent_pol_id == NO_POL_ID) {
+	struct pol_ids *parent_ids = get_inode_pol_ids(dentry->d_parent->d_inode);
+	if (!parent_ids) {
 		return ALLOW;
 	}
-	// only label if child does not already have a label
-	label_inode(dentry, inode, parent_pol_id);
+	// add the labels of the parent
+	label_inode_with_ids(dentry, inode, parent_ids);
 	return ALLOW;
 }
