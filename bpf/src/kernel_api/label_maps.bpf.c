@@ -21,6 +21,8 @@ u32 log_level;
 // maps
 struct map_to_pol_id map_to_pol_id SEC(".maps");
 struct log_ringbuf log_ringbuf     SEC(".maps");
+/// @brief Hashmap from policy id to policy config
+struct policy_map policy_map       SEC(".maps");
 
 struct map_id_to_pol_id {
 	/// @brief Hashtable map type

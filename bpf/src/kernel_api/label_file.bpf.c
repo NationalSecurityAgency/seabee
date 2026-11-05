@@ -27,14 +27,22 @@ struct inode_storage inode_storage SEC(".maps");
 struct policy_map policy_map       SEC(".maps");
 struct log_ringbuf log_ringbuf     SEC(".maps");
 
+/// @brief A request to add or remove a policy id
+struct label_request {
+	/// @brief The policy id
+	u32 policy_id;
+	/// @brief 0 to add the policy id, 1 to remove it
+	u32 remove;
+};
+
 struct filename_to_policy_id {
 	/// @brief Hashtable map type
 	__uint(type, BPF_MAP_TYPE_HASH);
 	__uint(max_entries, 1);
 	/// @brief The name of a file, limited to MAX_NAME_LEN
 	__type(key, char[MAX_STR_LEN]);
-	/// @brief The policy id for this file
-	__type(value, u32);
+	/// @brief The label request for this file
+	__type(value, struct label_request);
 };
 /// @brief Maps a filename to a policy id
 struct filename_to_policy_id filename_to_policy_id SEC(".maps");
@@ -71,10 +79,17 @@ int BPF_PROG(seabee_label_target_path, const struct path *path)
 		return ALLOW;
 	}
 
-	// get policy_id and label inode
-	u32 *policy_id = bpf_map_lookup_elem(&filename_to_policy_id, &name_copy);
-	if (policy_id) {
-		label_inode(path->dentry, path->dentry->d_inode, *policy_id);
+	// get request and label or unlabel inode
+	struct label_request *req =
+		bpf_map_lookup_elem(&filename_to_policy_id, &name_copy);
+	if (req) {
+		if (req->remove) {
+			unlabel_inode(path->dentry, path->dentry->d_inode, req->policy_id);
+		} else if (label_inode(path->dentry, path->dentry->d_inode,
+		                       req->policy_id) < 0) {
+			// ALLOW signals to userspace that labeling failed
+			return ALLOW;
+		}
 		// DENY signals to userspace that labeling worked
 		return DENY;
 	}
