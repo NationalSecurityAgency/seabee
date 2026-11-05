@@ -34,4 +34,7 @@
 // Indicates the base policy id
 #define BASE_POLICY_ID   1
 
+// Maximum number of policy ids on one object
+#define MAX_POL_IDS      8
+
 #endif

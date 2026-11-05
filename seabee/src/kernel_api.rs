@@ -56,10 +56,38 @@ pub fn remove_kernel_policy(maps: &SeaBeeMapHandles, policy_id: u32) -> Result<(
     debug!("remove kernel policy: {}", policy_id);
     maps.policy_map.delete(policy_id.as_bytes())?;
 
+    // remove the policy id from the scope paths
+    for key in maps.path_to_pol_id.keys() {
+        if let Some(value) = maps.path_to_pol_id.lookup(&key, libbpf_rs::MapFlags::ANY)? {
+            let mut ids = pol_ids_from_bytes(&value)?;
+            if ids.contains(&policy_id) {
+                ids.iter_mut()
+                    .filter(|id| **id == policy_id)
+                    .for_each(|id| *id = bpf::seabee::NO_POL_ID);
+                maps.path_to_pol_id
+                    .update(&key, ids.as_bytes(), libbpf_rs::MapFlags::EXIST)?;
+            }
+        }
+    }
+
     // inode and task local storage labels will persist,
     //   but will not be associated with a policy, so they won't be affected
     // map protections will be removed when maps are deallocated
     Ok(())
+}
+
+/// The policy ids of an object, as stored in the kernel
+type PolIds = [u32; bpf::seabee::MAX_POL_IDS as usize];
+
+fn pol_ids_from_bytes(bytes: &[u8]) -> Result<PolIds> {
+    let mut ids: PolIds = Default::default();
+    if bytes.len() != std::mem::size_of::<PolIds>() {
+        return Err(anyhow!("unexpected size for policy ids: {}", bytes.len()));
+    }
+    for (id, chunk) in ids.iter_mut().zip(bytes.chunks_exact(4)) {
+        *id = u32::from_ne_bytes(chunk.try_into()?);
+    }
+    Ok(ids)
 }
 
 // Add a path to the scope corresponding to an id
@@ -70,9 +98,43 @@ pub fn add_path_to_scope(maps: &SeaBeeMapHandles, path: &Path, id: u32) -> Resul
         PATH_MAX.try_into()?,
     )?;
 
+    // add the id to the policy ids already in scope for this path
+    let mut ids: PolIds = match maps
+        .path_to_pol_id
+        .lookup(key.as_slice(), libbpf_rs::MapFlags::ANY)?
+    {
+        Some(value) => pol_ids_from_bytes(&value)?,
+        None => Default::default(),
+    };
+    if !ids.contains(&id) {
+        // a slot is free if its id has no policy
+        let mut free_slot = None;
+        for (i, slot) in ids.iter().enumerate() {
+            if *slot == bpf::seabee::NO_POL_ID
+                || maps
+                    .policy_map
+                    .lookup(slot.as_bytes(), libbpf_rs::MapFlags::ANY)?
+                    .is_none()
+            {
+                free_slot = Some(i);
+                break;
+            }
+        }
+        match free_slot {
+            Some(i) => ids[i] = id,
+            None => {
+                return Err(anyhow!(
+                    "add_path_to_scope: {} is already in scope of {} policies",
+                    path.display(),
+                    bpf::seabee::MAX_POL_IDS
+                ))
+            }
+        }
+    }
+
     if let Err(e) =
         maps.path_to_pol_id
-            .update(key.as_slice(), id.as_bytes(), libbpf_rs::MapFlags::ANY)
+            .update(key.as_slice(), ids.as_bytes(), libbpf_rs::MapFlags::ANY)
     {
         return Err(anyhow!(
             "Error: add_path_to_scope: possibly exceeded max policy scopes: {}\n error: '{e}'",
@@ -99,14 +161,19 @@ pub fn label_files_for_policy(policy: &PolicyFile, sb_maps: &SeaBeeMapHandles) -
     let skel = load_label_file_skel(&mut open_object, sb_maps)?;
     for path in &policy.files {
         utils::walk_with(path, |entry| {
-            trigger_inode_labeling(&skel.maps.filename_to_policy_id, entry.path(), policy.id)
-                .map_err(|e| {
-                    anyhow!(
-                        "label_files_for_policy {}: failed to label {}\n{e}",
-                        policy.id,
-                        path.display()
-                    )
-                })?;
+            trigger_inode_labeling(
+                &skel.maps.filename_to_policy_id,
+                entry.path(),
+                policy.id,
+                false,
+            )
+            .map_err(|e| {
+                anyhow!(
+                    "label_files_for_policy {}: failed to label {}\n{e}",
+                    policy.id,
+                    path.display()
+                )
+            })?;
 
             Ok(())
         })?;
@@ -120,7 +187,7 @@ pub fn label_file_with_id(sb_maps: &SeaBeeMapHandles, path: &Path, id: u32) -> R
     debug!("Labeling file {} with id: {id}", path.display());
     let mut open_object = MaybeUninit::uninit();
     let skel = load_label_file_skel(&mut open_object, sb_maps)?;
-    if let Err(e) = trigger_inode_labeling(&skel.maps.filename_to_policy_id, path, id) {
+    if let Err(e) = trigger_inode_labeling(&skel.maps.filename_to_policy_id, path, id, false) {
         return Err(anyhow!(
             "label_file_with_id failed on {}: {e}",
             path.display()
@@ -130,16 +197,12 @@ pub fn label_file_with_id(sb_maps: &SeaBeeMapHandles, path: &Path, id: u32) -> R
     Ok(())
 }
 
-/// remove label on a given file
-pub fn unlabel_file(sb_maps: &SeaBeeMapHandles, file: &PathBuf) -> Result<()> {
-    debug!("unlabel file {}", file.display());
+/// remove a policy id from a given file
+pub fn unlabel_file(sb_maps: &SeaBeeMapHandles, file: &PathBuf, id: u32) -> Result<()> {
+    debug!("unlabel file {} for id: {id}", file.display());
     let mut open_object = MaybeUninit::uninit();
     let skel = load_label_file_skel(&mut open_object, sb_maps)?;
-    trigger_inode_labeling(
-        &skel.maps.filename_to_policy_id,
-        Path::new(file),
-        bpf::seabee::NO_POL_ID,
-    )?;
+    trigger_inode_labeling(&skel.maps.filename_to_policy_id, Path::new(file), id, true)?;
 
     Ok(())
 }
@@ -161,9 +224,12 @@ pub fn label_seabee_pins(
 
     for pin in pins {
         match pin.link.pin_path() {
-            Some(path) => {
-                trigger_inode_labeling(&skel.maps.filename_to_policy_id, &path, BASE_POLICY_ID)?
-            }
+            Some(path) => trigger_inode_labeling(
+                &skel.maps.filename_to_policy_id,
+                &path,
+                BASE_POLICY_ID,
+                false,
+            )?,
             None => {
                 return Err(anyhow!("link was not pinned!"));
             }
@@ -204,7 +270,7 @@ pub fn label_maps_for_skel(
 
 // should only be called after load_label_file_skel(), this triggers
 // loaded eBPF programs which actually execute the file labeling
-fn trigger_inode_labeling(map: &Map, path: &Path, policy_id: u32) -> Result<()> {
+fn trigger_inode_labeling(map: &Map, path: &Path, policy_id: u32, remove: bool) -> Result<()> {
     // Update map with filename
     let file_name = path.file_name().context(format!(
         "trigger_file_labeling: file_name() failed on {}",
@@ -217,11 +283,9 @@ fn trigger_inode_labeling(map: &Map, path: &Path, policy_id: u32) -> Result<()> 
         ))?,
         128,
     )?;
-    map.update(
-        key.as_slice(),
-        policy_id.as_bytes(),
-        libbpf_rs::MapFlags::ANY,
-    )?;
+    // struct label_request in label_file.bpf.c
+    let request: [u32; 2] = [policy_id, remove.into()];
+    map.update(key.as_slice(), request.as_bytes(), libbpf_rs::MapFlags::ANY)?;
 
     // trigger 'seabee_label_file' eBPF program in 'label_file.bpf.c' using stat.
     // After successfully labeling the file, a permission denied is returned.
@@ -229,7 +293,7 @@ fn trigger_inode_labeling(map: &Map, path: &Path, policy_id: u32) -> Result<()> 
     // The denial simply indicates we successfully triggered our program.
     match nix::sys::stat::stat(path) {
         Ok(_) => Err(anyhow!(
-            "trigger_file_labeling: stat returned unexpected allow for {}",
+            "trigger_file_labeling: labeling failed for {} (see the SeaBee log)",
             path.display()
         )),
         Err(e) => {
@@ -347,6 +411,10 @@ fn load_label_maps_skel<'a>(
         .maps
         .log_ringbuf
         .reuse_fd(sb_maps.log_ringbuf.as_fd())?;
+    open_skel
+        .maps
+        .policy_map
+        .reuse_fd(sb_maps.policy_map.as_fd())?;
     open_skel
         .maps
         .map_id_to_pol_id

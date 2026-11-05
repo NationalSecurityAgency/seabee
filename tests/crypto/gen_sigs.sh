@@ -33,6 +33,13 @@ sudo seabeectl sign -t policies/test_tool_release_block.yaml -k crypto/keys/rsa-
 sudo seabeectl sign -t policies/remove_test_tool_policy.yaml -k crypto/keys/rsa-private.pem -o crypto/sigs/remove-test-tool-policy.sign --nopass
 sudo seabeectl sign -t policies/test_tool_overwrite.yaml -k crypto/keys/rsa-private.pem -o crypto/sigs/test-tool-overwrite.sign --nopass
 
+## overlapping policies
+sudo seabeectl sign -t policies/overlap_audit.yaml -k crypto/keys/ecdsa-private.pem -o crypto/sigs/overlap-audit-ecdsa.sign --nopass
+sudo seabeectl sign -t policies/overlap_block.yaml -k crypto/keys/ecdsa-private.pem -o crypto/sigs/overlap-block-ecdsa.sign --nopass
+sudo seabeectl sign -t policies/overlap_block_v2.yaml -k crypto/keys/ecdsa-private.pem -o crypto/sigs/overlap-block-v2-ecdsa.sign --nopass
+sudo seabeectl sign -t policies/remove_overlap_audit.yaml -k crypto/keys/ecdsa-private.pem -o crypto/sigs/remove-overlap-audit-ecdsa.sign --nopass
+sudo seabeectl sign -t policies/remove_overlap_block_v2.yaml -k crypto/keys/ecdsa-private.pem -o crypto/sigs/remove-overlap-block-v2-ecdsa.sign --nopass
+
 ## policy removal
 sudo seabeectl sign -t policies/remove_test_policy.yaml -k crypto/keys/ecdsa-private.pem -o crypto/sigs/remove-test-policy-ecdsa.sign --nopass
 sudo seabeectl sign -t policies/remove_test_policy_v2.yaml -k crypto/keys/ecdsa-private.pem -o crypto/sigs/remove-test-policy-v2-ecdsa.sign --nopass

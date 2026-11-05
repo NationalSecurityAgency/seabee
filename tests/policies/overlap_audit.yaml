@@ -1,0 +1,11 @@
+---
+name: overlap-audit-policy
+version: 1
+scope:
+  - /this/file/does/not/exist
+files:
+  - /etc/seabee_test_overlap
+config:
+  map_access: audit
+  file_write_access: audit
+  include_pins: true

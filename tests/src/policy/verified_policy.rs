@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
+use std::path::Path;
+
 use libtest_mimic::{Failed, Trial};
 
 use crate::{
     create_test,
     policy::{daemon_status, shared},
+    test_utils::try_open,
 };
 
 use super::shared::{Expected, ECDSA_PUB, ECDSA_PUB_ECDSA_SIG, V1};
@@ -48,6 +51,53 @@ fn no_add_policy_unsigned() -> Result<(), Failed> {
     shared::policies_on_disk(0)
 }
 
+/// Two policies protect the same file: both are enforced
+fn overlap_both_enforced() -> Result<(), Failed> {
+    std::fs::write(shared::OVERLAP_FILE, b"overlap")?;
+    shared::update_policy_signed(
+        shared::OVERLAP_AUDIT,
+        shared::OVERLAP_AUDIT_ECDSA,
+        Expected::Success,
+    )?;
+    try_open(Path::new(shared::OVERLAP_FILE), false, true)?;
+    shared::update_policy_signed(
+        shared::OVERLAP_BLOCK,
+        shared::OVERLAP_BLOCK_ECDSA,
+        Expected::Success,
+    )?;
+    try_open(Path::new(shared::OVERLAP_FILE), false, false)?;
+    shared::list_policies(2)
+}
+
+/// Removing one policy leaves the other in force
+fn overlap_remove_one() -> Result<(), Failed> {
+    shared::remove_policy_signed(
+        shared::REMOVE_OVERLAP_AUDIT,
+        shared::REMOVE_OVERLAP_AUDIT_ECDSA,
+        Expected::Success,
+    )?;
+    try_open(Path::new(shared::OVERLAP_FILE), false, false)?;
+    shared::list_policies(1)
+}
+
+/// A file removed from a policy by an update is no longer protected by it
+fn overlap_update_removes_file() -> Result<(), Failed> {
+    shared::update_policy_signed(
+        shared::OVERLAP_BLOCK_V2,
+        shared::OVERLAP_BLOCK_V2_ECDSA,
+        Expected::Success,
+    )?;
+    try_open(Path::new(shared::OVERLAP_FILE), false, true)?;
+    shared::remove_policy_signed(
+        shared::REMOVE_OVERLAP_BLOCK_V2,
+        shared::REMOVE_OVERLAP_BLOCK_V2_ECDSA,
+        Expected::Success,
+    )?;
+    std::fs::remove_file(shared::OVERLAP_FILE)?;
+    shared::list_policies(0)?;
+    shared::policies_on_disk(0)
+}
+
 fn no_remove_key_unsigned() -> Result<(), Failed> {
     shared::remove_key_unsigned(ECDSA_PUB, Expected::Error)?;
     shared::list_keys(2)
@@ -69,6 +119,9 @@ pub fn tests() -> Vec<Trial> {
         create_test!(update_policy),
         create_test!(remove_policy),
         create_test!(no_add_policy_unsigned),
+        create_test!(overlap_both_enforced),
+        create_test!(overlap_remove_one),
+        create_test!(overlap_update_removes_file),
         create_test!(no_remove_key_unsigned),
         create_test!(remove_key),
     ]

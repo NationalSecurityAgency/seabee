@@ -1,0 +1,10 @@
+---
+name: overlap-block-policy
+version: 2
+scope:
+  - /this/file/does/not/exist
+files:
+config:
+  map_access: block
+  file_write_access: block
+  include_pins: true
