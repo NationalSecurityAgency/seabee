@@ -296,7 +296,7 @@ pub fn verify_policy_signature_cli(info: &VerifyInfoCLI) -> Result<String> {
     if verify_file_signature(&info.target_path, &info.sig_path, digest, &key)? {
         Ok("Verified OK".to_string())
     } else {
-        Ok("Verifcation failure".to_string())
+        Err(anyhow!("Verification failure"))
     }
 }
 
