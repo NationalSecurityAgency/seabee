@@ -122,6 +122,13 @@ impl Default for Config {
     }
 }
 
+impl Config {
+    /// The config in the format of a saved config file
+    pub fn to_yaml(&self) -> Result<String> {
+        Ok(serde_yaml::to_string(&Args::from(self))?)
+    }
+}
+
 /// sets up ctrl+c handler based on whether or not SIGINT is allowed
 pub fn setup_ctrlc(sigint: bool) -> Result<Arc<AtomicBool>> {
     let running = Arc::new(AtomicBool::new(true));

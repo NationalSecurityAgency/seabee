@@ -124,6 +124,11 @@ pub enum SocketCommand {
     /// reverified with the new reduced set of keys.
     /// You cannot revoke the root key.
     RemoveKey(SignedRequestInfo),
+    /// Show the configuration SeaBee is running with
+    ///
+    /// The output has the format of the saved config (/etc/seabee/config.yaml).
+    /// It includes defaults and command line options.
+    ShowConfig,
     /// Shutdown SeaBee with a signed shutdown request
     ///
     /// A shutdown request is a yaml document with the the key "machine_id"
@@ -171,6 +176,7 @@ impl std::fmt::Display for SocketCommand {
             SocketCommand::RemoveKey(key_info) => {
                 write!(f, "Remove Key: {}", key_info.target_path.display())
             }
+            SocketCommand::ShowConfig => write!(f, "Show Config"),
             SocketCommand::Shutdown(shutdown_info) => {
                 write!(f, "Shutdown: {}", shutdown_info.target_path.display())
             }
