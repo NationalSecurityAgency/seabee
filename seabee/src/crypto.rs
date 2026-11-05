@@ -12,7 +12,7 @@ use openssl::{
     bn::BigNumContext,
     error::ErrorStack,
     hash::MessageDigest,
-    pkey::{Id, PKey, Public},
+    pkey::{HasPublic, Id, PKey, PKeyRef, Public},
     sign::{Signer, Verifier},
 };
 use strum::IntoEnumIterator;
@@ -22,6 +22,97 @@ use crate::{
     policy::policy_file::{FromYamlPath, PolicyFile},
     utils,
 };
+
+/// Final parameter sets of FIPS 204 (ML-DSA) and FIPS 205 (SLH-DSA), in OID order.
+/// Their OIDs are 2.16.840.1.101.3.4.3.17 through 2.16.840.1.101.3.4.3.31 (NIST CSOR).
+const NIST_PQC_PARAM_SETS: [&str; 15] = [
+    "ML-DSA-44",
+    "ML-DSA-65",
+    "ML-DSA-87",
+    "SLH-DSA-SHA2-128s",
+    "SLH-DSA-SHA2-128f",
+    "SLH-DSA-SHA2-192s",
+    "SLH-DSA-SHA2-192f",
+    "SLH-DSA-SHA2-256s",
+    "SLH-DSA-SHA2-256f",
+    "SLH-DSA-SHAKE-128s",
+    "SLH-DSA-SHAKE-128f",
+    "SLH-DSA-SHAKE-192s",
+    "SLH-DSA-SHAKE-192f",
+    "SLH-DSA-SHAKE-256s",
+    "SLH-DSA-SHAKE-256f",
+];
+/// DER of an AlgorithmIdentifier holding 2.16.840.1.101.3.4.3.x without parameters,
+/// missing the last OID byte x
+const NIST_SIG_ALG_ID_PREFIX: [u8; 12] = [
+    0x30, 0x0b, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x03,
+];
+const NIST_PQC_FIRST_OID_ARC: u8 = 17;
+
+/// Signature algorithm of a SeaBee key
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SeaBeeKeyType {
+    Rsa,
+    Ec,
+    /// FIPS 204 parameter set
+    MlDsa(&'static str),
+    /// FIPS 205 parameter set
+    SlhDsa(&'static str),
+}
+
+impl SeaBeeKeyType {
+    /// Returns the type of a key, or None if SeaBee does not support it
+    pub fn from_pkey<T: HasPublic>(key: &PKeyRef<T>) -> Option<Self> {
+        match key.id() {
+            Id::RSA => Some(Self::Rsa),
+            Id::EC => Some(Self::Ec),
+            // OpenSSL 3.5 reports no legacy id for ML-DSA and SLH-DSA keys,
+            // so identify them by the algorithm OID of the public key
+            _ => Self::from_spki(&key.public_key_to_der().ok()?),
+        }
+    }
+
+    /// Reads the algorithm of a DER SubjectPublicKeyInfo:
+    /// SEQUENCE { SEQUENCE { OID }, BIT STRING }
+    fn from_spki(spki: &[u8]) -> Option<Self> {
+        if *spki.first()? != 0x30 {
+            return None;
+        }
+        let len = *spki.get(1)?;
+        let start = if len < 0x80 {
+            2
+        } else {
+            2 + (len & 0x7f) as usize
+        };
+        let alg_id = spki.get(start..start + NIST_SIG_ALG_ID_PREFIX.len() + 1)?;
+        if alg_id[..NIST_SIG_ALG_ID_PREFIX.len()] != NIST_SIG_ALG_ID_PREFIX {
+            return None;
+        }
+        let index = alg_id[NIST_SIG_ALG_ID_PREFIX.len()].checked_sub(NIST_PQC_FIRST_OID_ARC)?;
+        let name = *NIST_PQC_PARAM_SETS.get(index as usize)?;
+        if index < 3 {
+            Some(Self::MlDsa(name))
+        } else {
+            Some(Self::SlhDsa(name))
+        }
+    }
+
+    /// RSA and ECDSA sign a digest of the message. ML-DSA and SLH-DSA sign the
+    /// message itself, so a separate digest does not apply.
+    pub fn uses_digest(&self) -> bool {
+        matches!(self, Self::Rsa | Self::Ec)
+    }
+}
+
+impl fmt::Display for SeaBeeKeyType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Rsa => write!(f, "RSA"),
+            Self::Ec => write!(f, "EC"),
+            Self::MlDsa(name) | Self::SlhDsa(name) => write!(f, "{name}"),
+        }
+    }
+}
 
 /// A key used to verify SeaBeePolicy Updates
 #[derive(Debug, Clone)]
@@ -46,15 +137,12 @@ impl SeaBeeKey {
         utils::verify_file_has_ext(path, vec!["pem"])?;
         let key_file_bytes = utils::file_to_bytes(&path)?;
         let key = PKey::public_key_from_pem(&key_file_bytes)?;
-        match key.id() {
-            Id::RSA | Id::EC => {}
-            other => {
-                return Err(anyhow!(
-                    "key has unsupported type: {:?}. Only EC and RSA keys are supported by SeaBee.",
-                    other
-                ))
-            }
-        };
+        if SeaBeeKeyType::from_pkey(&key).is_none() {
+            return Err(anyhow!(
+                "key has unsupported type: {:?}. Only EC, RSA, ML-DSA and SLH-DSA keys are supported by SeaBee.",
+                key.id()
+            ));
+        }
 
         Ok(Self {
             added_from: std::path::absolute(path)?,
@@ -85,16 +173,21 @@ impl SeaBeeKey {
             let other_key = other.key.rsa()?;
             return Ok((our_key.e() == other_key.e()) && (our_key.n() == other_key.n()));
         }
+        let our_type = SeaBeeKeyType::from_pkey(&self.key);
+        if our_type.is_some_and(|t| !t.uses_digest())
+            && our_type == SeaBeeKeyType::from_pkey(&other.key)
+        {
+            return Ok(self.key.public_key_to_der()? == other.key.public_key_to_der()?);
+        }
         Ok(false)
     }
 }
 
 impl fmt::Display for SeaBeeKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let key_type = match self.key.id() {
-            Id::RSA => "RSA",
-            Id::EC => "EC",
-            _ => "Unsupported Type",
+        let key_type = match SeaBeeKeyType::from_pkey(&self.key) {
+            Some(key_type) => key_type.to_string(),
+            None => "Unsupported Type".to_string(),
         };
 
         write!(
@@ -227,7 +320,10 @@ pub fn sign_file(info: &SignInfo) -> Result<String> {
 
     // Create openssl signer with hash_func and key
     // This supports algorithms besides RSA and ECDSA, but I have those listed as supported since they are common and NIST approved
-    let mut signer = Signer::new(hash_func, &signing_key)?;
+    let mut signer = match SeaBeeKeyType::from_pkey(&signing_key) {
+        Some(key_type) if !key_type.uses_digest() => Signer::new_without_digest(&signing_key)?,
+        _ => Signer::new(hash_func, &signing_key)?,
+    };
     // Sign policy
     let signature = signer.sign_oneshot_to_vec(&target_bytes)?;
     // Output signature
@@ -311,7 +407,10 @@ pub fn verify_file_signature(
     let sig_bytes = utils::file_to_bytes(&sig_path)?;
 
     // set up verifier
-    let mut verifier = Verifier::new(digest, &key.key)?;
+    let mut verifier = match SeaBeeKeyType::from_pkey(&key.key) {
+        Some(key_type) if !key_type.uses_digest() => Verifier::new_without_digest(&key.key)?,
+        _ => Verifier::new(digest, &key.key)?,
+    };
     // do verification
     match verifier.verify_oneshot(&sig_bytes, &policy_bytes) {
         Ok(result) => Ok(result),
@@ -332,10 +431,14 @@ fn openssl_to_anyhow_error(e: ErrorStack) -> anyhow::Error {
 
 pub fn list_crypto_alg() -> String {
     let mut out = String::new();
-    out.push_str("Digital Signature Algorithms: RSA, ECDSA\n");
+    out.push_str("Digital Signature Algorithms: RSA, ECDSA, ML-DSA, SLH-DSA\n");
     out.push_str(&format!(
-        "Message Digest Algorithms: {}\n",
+        "Message Digest Algorithms (RSA and ECDSA only): {}\n",
         SeaBeeDigest::iter().join(", ")
+    ));
+    out.push_str(&format!(
+        "ML-DSA and SLH-DSA parameter sets: {}\n",
+        NIST_PQC_PARAM_SETS.join(", ")
     ));
     out.push_str("Key formats: pem");
     out
@@ -352,5 +455,132 @@ pub fn get_digest_algorithm(
     } else {
         // Use default digest when one is not specified
         Ok(SeaBeeDigest::default().try_into()?)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const KEY_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../tests/crypto/keys");
+
+    fn key_path(name: &str) -> PathBuf {
+        PathBuf::from(KEY_DIR).join(name)
+    }
+
+    /// DER SubjectPublicKeyInfo header with a NIST signature OID ending in `arc`
+    fn spki_header(arc: u8, long_form: bool) -> Vec<u8> {
+        let mut der = if long_form {
+            vec![0x30, 0x82, 0x07, 0xb2]
+        } else {
+            vec![0x30, 0x30]
+        };
+        der.extend_from_slice(&NIST_SIG_ALG_ID_PREFIX);
+        der.push(arc);
+        der.extend_from_slice(&[0x03, 0x21, 0x00]);
+        der
+    }
+
+    #[test]
+    fn test_spki_detects_all_fips_204_205_parameter_sets() {
+        for (i, name) in NIST_PQC_PARAM_SETS.iter().enumerate() {
+            let arc = NIST_PQC_FIRST_OID_ARC + i as u8;
+            for long_form in [false, true] {
+                let key_type = SeaBeeKeyType::from_spki(&spki_header(arc, long_form));
+                let expected = if i < 3 {
+                    SeaBeeKeyType::MlDsa(name)
+                } else {
+                    SeaBeeKeyType::SlhDsa(name)
+                };
+                assert_eq!(key_type, Some(expected));
+            }
+        }
+    }
+
+    #[test]
+    fn test_spki_rejects_other_oids() {
+        // 2.16.840.1.101.3.4.3.16 and .32 are outside FIPS 204/205
+        assert_eq!(SeaBeeKeyType::from_spki(&spki_header(16, false)), None);
+        assert_eq!(SeaBeeKeyType::from_spki(&spki_header(32, false)), None);
+        let mut other_prefix = spki_header(17, false);
+        other_prefix[11] = 0x02;
+        assert_eq!(SeaBeeKeyType::from_spki(&other_prefix), None);
+        assert_eq!(SeaBeeKeyType::from_spki(&[0x30]), None);
+        assert_eq!(SeaBeeKeyType::from_spki(&[]), None);
+    }
+
+    #[test]
+    fn test_new_key_accepts_ml_dsa_and_slh_dsa() -> Result<()> {
+        let ml_dsa = SeaBeeKey::new_key(&key_path("ml-dsa-65-public.pem"), 1)?;
+        let slh_dsa = SeaBeeKey::new_key(&key_path("slh-dsa-sha2-128s-public.pem"), 2)?;
+        assert_eq!(
+            SeaBeeKeyType::from_pkey(&ml_dsa.key),
+            Some(SeaBeeKeyType::MlDsa("ML-DSA-65"))
+        );
+        assert_eq!(
+            SeaBeeKeyType::from_pkey(&slh_dsa.key),
+            Some(SeaBeeKeyType::SlhDsa("SLH-DSA-SHA2-128s"))
+        );
+        assert!(ml_dsa.to_string().contains("Type: ML-DSA-65"));
+        Ok(())
+    }
+
+    #[test]
+    fn test_new_key_still_rejects_dsa() {
+        assert!(SeaBeeKey::new_key(&key_path("invalid/dsa-public.pem"), 1).is_err());
+    }
+
+    #[test]
+    fn test_try_eq_ml_dsa_and_slh_dsa() -> Result<()> {
+        let ml_dsa = SeaBeeKey::new_key(&key_path("ml-dsa-65-public.pem"), 1)?;
+        let ml_dsa_again = SeaBeeKey::new_key(&key_path("ml-dsa-65-public.pem"), 2)?;
+        let slh_dsa = SeaBeeKey::new_key(&key_path("slh-dsa-sha2-128s-public.pem"), 3)?;
+        let ec = SeaBeeKey::new_key(&key_path("ecdsa-public.pem"), 4)?;
+        assert!(ml_dsa.try_eq(&ml_dsa_again)?);
+        assert!(!ml_dsa.try_eq(&slh_dsa)?);
+        assert!(!ml_dsa.try_eq(&ec)?);
+        assert!(!ec.try_eq(&ml_dsa)?);
+        Ok(())
+    }
+
+    #[test]
+    fn test_sign_and_verify_without_digest() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        let target = dir.path().join("target.yaml");
+        std::fs::write(&target, "name: pqc\n")?;
+        for (private, public) in [
+            ("ml-dsa-65-private.pem", "ml-dsa-65-public.pem"),
+            (
+                "slh-dsa-sha2-128s-private.pem",
+                "slh-dsa-sha2-128s-public.pem",
+            ),
+        ] {
+            let sig = dir.path().join(format!("{private}.sign"));
+            let info = SignInfo {
+                target_path: target.clone(),
+                key_path: key_path(private),
+                out_path: sig.clone(),
+                digest: Some(SeaBeeDigest::sha512),
+                nopass: true,
+            };
+            sign_file(&info)?;
+            let key = SeaBeeKey::new_key(&key_path(public), 1)?;
+            // the digest argument does not apply to ML-DSA and SLH-DSA
+            assert!(verify_file_signature(
+                &target,
+                &sig,
+                MessageDigest::sha256(),
+                &key
+            )?);
+            let other = dir.path().join("other.yaml");
+            std::fs::write(&other, "name: other\n")?;
+            assert!(!verify_file_signature(
+                &other,
+                &sig,
+                MessageDigest::sha256(),
+                &key
+            )?);
+        }
+        Ok(())
     }
 }
