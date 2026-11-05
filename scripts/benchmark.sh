@@ -8,7 +8,7 @@
 # `make gen-root-key-ci` and `make install-root-key`; stress-ng and gcc installed;
 # SeaBee not running.
 #
-# Usage: sudo scripts/benchmark.sh [seconds per stressor (default 20)] [runs (default 3)]
+# Usage: sudo bash scripts/benchmark.sh [seconds per stressor (default 20)] [runs (default 3)]
 set -e
 
 SECONDS_PER=${1:-20}
