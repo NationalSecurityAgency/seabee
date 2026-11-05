@@ -1,0 +1,11 @@
+---
+name: overlap-block-policy
+version: 1
+scope:
+  - /this/file/does/not/exist
+files:
+  - /etc/seabee_test_overlap
+config:
+  map_access: block
+  file_write_access: block
+  include_pins: true
