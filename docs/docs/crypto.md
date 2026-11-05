@@ -54,9 +54,14 @@ In order to verify these signatures, verification keys must be added to
 SeaBee before policy updates can be made.
 
 A user must first generate a public private key pair.
-SeaBee currently supports RSA and ECDSA digital signatures
-and message digests using either SHA-2 or SHA-3. See [Issue 42](https://github.com/NationalSecurityAgency/seabee/issues/42)
-for updates about support for PQC Algorithms.
+SeaBee currently supports RSA, ECDSA, ML-DSA
+([FIPS 204](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.204.pdf))
+and SLH-DSA
+([FIPS 205](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf))
+digital signatures.
+RSA and ECDSA sign a message digest using either SHA-2 or SHA-3.
+ML-DSA and SLH-DSA sign the message itself,
+so the digest setting does not apply to them.
 
 ![User A Generates a Key Pair](./assets/images/diagrams/generate-keys.png)
 
@@ -187,7 +192,8 @@ For more information, try `seabeectl --help`, our [seabeectl docs](./seabeectl.m
 In production, keys should be generated on a separate system from where SeaBee is deployed.
 
 This tutorial uses `openssl` to generate keys.
-SeaBee accepts RSA or ECDSA keys and expects password protected .pem files.
+SeaBee accepts RSA, ECDSA, ML-DSA or SLH-DSA keys
+and expects password protected .pem files.
 
 The following instructions are from the [openssl wiki](https://wiki.openssl.org/index.php/Command_Line_Utilities).
 
@@ -206,6 +212,27 @@ generate an ECDSA private key with passphrase using NIST curve `P-256`. See [NIS
 generate an ECDSA public key
 
 - `openssl pkey -in ecdsa-private-key.pem -out ecdsa-public-key.pem -pubout`
+
+generate an ML-DSA private key with passphrase (OpenSSL 3.5 or later).
+ML-DSA-44, ML-DSA-65 and ML-DSA-87 are supported.
+
+- `openssl genpkey -aes256 -algorithm ML-DSA-65 -out ml-dsa-private-key.pem`
+
+generate an ML-DSA public key
+
+- `openssl pkey -in ml-dsa-private-key.pem -out ml-dsa-public-key.pem -pubout`
+
+generate an SLH-DSA private key with passphrase (OpenSSL 3.5 or later).
+All twelve SLH-DSA parameter sets are supported; `seabeectl alg` lists them.
+SLH-DSA signatures are large:
+7,856 bytes for SLH-DSA-SHA2-128s, up to 49,856 bytes.
+
+- `openssl genpkey -aes256 -algorithm SLH-DSA-SHA2-128s
+  -out slh-dsa-private-key.pem`
+
+generate an SLH-DSA public key
+
+- `openssl pkey -in slh-dsa-private-key.pem -out slh-dsa-public-key.pem -pubout`
 
 ## Installing the SeaBee Root Key
 
