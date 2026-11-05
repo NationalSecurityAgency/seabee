@@ -43,7 +43,7 @@ make install-release
 make gen-root-key-ci
 make install-root-key
 sudo apt install stress-ng gcc bc
-sudo scripts/benchmark.sh
+sudo bash scripts/benchmark.sh
 ```
 
 SeaBee must not be running when the script starts.
