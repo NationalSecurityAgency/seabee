@@ -25,25 +25,20 @@ extern struct task_storage  task_storage;
 extern struct policy_map    policy_map;
 extern struct map_to_pol_id map_to_pol_id;
 
-/// return 0 for no policy id
-static __always_inline u32 get_inode_pol_id(struct inode *inode)
+/// return NULL for no policy ids
+static __always_inline struct pol_ids *get_inode_pol_ids(struct inode *inode)
 {
-	u32 *policy_id = bpf_inode_storage_get(&inode_storage, inode, 0, 0);
-	if (policy_id) {
-		return *policy_id;
-	} else {
-		return NO_POL_ID;
-	}
+	return bpf_inode_storage_get(&inode_storage, inode, 0, 0);
 }
 
-/// return 0 for no policy id
-static __always_inline u32 get_map_pol_id(struct bpf_map *map)
+/// return NULL for no policy ids
+static __always_inline struct pol_ids *get_map_pol_ids(struct bpf_map *map)
 {
 	struct bpf_map_data *data = bpf_map_lookup_elem(&map_to_pol_id, &map);
 	if (data) {
-		return data->policy_id;
+		return &data->pol_ids;
 	} else {
-		return NO_POL_ID;
+		return NULL;
 	}
 }
 
@@ -94,6 +89,91 @@ static __always_inline bool is_valid_policy_id(u32 policy_id)
 }
 
 /**
+ * @brief checks if a set of policy ids contains a policy id
+ *
+ * @param pol_ids the set, may be NULL
+ * @param policy_id the policy id to find
+ *
+ * @return true if found
+ */
+static __always_inline bool has_pol_id(const struct pol_ids *pol_ids,
+                                       u32                   policy_id)
+{
+	if (!pol_ids || policy_id == NO_POL_ID) {
+		return false;
+	}
+#pragma unroll
+	for (int i = 0; i < MAX_POL_IDS; i++) {
+		if (pol_ids->ids[i] == policy_id) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * @brief adds a policy id to a set of policy ids. A slot is free if it holds
+ * NO_POL_ID or an id that no longer has a policy.
+ *
+ * @param pol_ids the set
+ * @param policy_id the policy id to add
+ *
+ * @return 0 if the id was added or already present, -1 if the set is full
+ */
+static __always_inline int add_pol_id(struct pol_ids *pol_ids, u32 policy_id)
+{
+	if (has_pol_id(pol_ids, policy_id)) {
+		return 0;
+	}
+#pragma unroll
+	for (int i = 0; i < MAX_POL_IDS; i++) {
+		if (!is_valid_policy_id(pol_ids->ids[i])) {
+			pol_ids->ids[i] = policy_id;
+			return 0;
+		}
+	}
+	return -1;
+}
+
+/**
+ * @brief removes a policy id from a set of policy ids
+ *
+ * @param pol_ids the set
+ * @param policy_id the policy id to remove
+ */
+static __always_inline void remove_pol_id(struct pol_ids *pol_ids,
+                                          u32             policy_id)
+{
+#pragma unroll
+	for (int i = 0; i < MAX_POL_IDS; i++) {
+		if (pol_ids->ids[i] == policy_id) {
+			pol_ids->ids[i] = NO_POL_ID;
+		}
+	}
+}
+
+/**
+ * @brief checks if a set of policy ids holds at least one valid policy id
+ *
+ * @param pol_ids the set, may be NULL
+ *
+ * @return true if a valid policy id was found
+ */
+static __always_inline bool has_valid_pol_id(const struct pol_ids *pol_ids)
+{
+	if (!pol_ids) {
+		return false;
+	}
+#pragma unroll
+	for (int i = 0; i < MAX_POL_IDS; i++) {
+		if (is_valid_policy_id(pol_ids->ids[i])) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
  * @brief gets the data associated with a particular task
  *
  * @param t target task
@@ -120,34 +200,30 @@ static __always_inline struct seabee_task_data *get_task_data()
 }
 
 /**
- * @brief gets the policy id for a target task
+ * @brief gets the policy ids for a target task
  *
  * @param t the target task
- * @return the policy id for the task or NO_POL_ID
+ * @return the policy ids for the task or NULL
  */
-static __always_inline u32 get_target_task_pol_id(struct task_struct *t)
+static __always_inline struct pol_ids *
+get_target_task_pol_ids(struct task_struct *t)
 {
 	struct seabee_task_data *data = get_target_task_data(t);
 	if (data) {
-		return data->pol_id;
+		return &data->pol_ids;
 	} else {
-		return NO_POL_ID;
+		return NULL;
 	}
 }
 
 /**
- * @brief gets the policy id for a task
+ * @brief gets the policy ids for the current task
  *
- * @return the policy id for the task or NO_POL_ID
+ * @return the policy ids for the task or NULL
  */
-static __always_inline u32 get_task_pol_id()
+static __always_inline struct pol_ids *get_task_pol_ids()
 {
-	struct seabee_task_data *data = get_task_data();
-	if (data) {
-		return data->pol_id;
-	} else {
-		return NO_POL_ID;
-	}
+	return get_target_task_pol_ids(get_task());
 }
 
 /**
@@ -163,62 +239,30 @@ static __always_inline void set_task_pinning(u32 flag)
 	struct task_struct      *task = get_task();
 	struct seabee_task_data *data =
 		bpf_task_storage_get(&task_storage, task, 0, 0);
-	if (data && data->pol_id != NO_POL_ID) {
-		// Check pin protections are enabled
-		struct c_policy_config *cfg = get_policy_config(data->pol_id);
+	if (!data) {
+		return;
+	}
+	// Check pin protections are enabled for one of its policies
+	bool protect_pins = false;
+#pragma unroll
+	for (int i = 0; i < MAX_POL_IDS; i++) {
+		struct c_policy_config *cfg = get_policy_config(data->pol_ids.ids[i]);
 		if (cfg && cfg->protect_pins) {
-			// set flag if it has changed
-			if (data->is_pinning != flag) {
-				data->is_pinning = flag;
-				u64 log[3] = { (u64)task->comm, (u64)task->tgid, (u64)flag };
-				log_generic_msg(LOG_LEVEL_TRACE, LOG_REASON_DEBUG,
-				                "set task %s(%d) pinning to %lu", log,
-				                sizeof(log));
-			}
+			protect_pins = true;
 		}
 	}
-}
-
-enum object_type {
-	OBJECT_TYPE_INODE,
-	OBJECT_TYPE_TASK,
-	OBJECT_TYPE_MAP,
-};
-
-/**
- * @brief gets the policy id for an object only if it has a valid policy associated with it.
- *
- * @param object a pointer to the object we want a label for
- * @param object_type identifies what type of pointer the object is
- *
- * @return policy_id for an object or NO_POL_ID
-*/
-static __always_inline u32 get_object_valid_policy_id(void            *object,
-                                                      enum object_type type)
-{
-	// get current label
-	u32 current_pol_id = NO_POL_ID;
-	switch (type) {
-	case OBJECT_TYPE_TASK:
-		current_pol_id = get_target_task_pol_id((struct task_struct *)object);
-		break;
-	case OBJECT_TYPE_INODE:
-		current_pol_id = get_inode_pol_id((struct inode *)object);
-		break;
-	case OBJECT_TYPE_MAP:
-		current_pol_id = get_map_pol_id((struct bpf_map *)object);
-		break;
+	// set flag if it has changed
+	if (protect_pins && data->is_pinning != flag) {
+		data->is_pinning = flag;
+		u64 log[3]       = { (u64)task->comm, (u64)task->tgid, (u64)flag };
+		log_generic_msg(LOG_LEVEL_TRACE, LOG_REASON_DEBUG,
+		                "set task %s(%d) pinning to %lu", log, sizeof(log));
 	}
-	// check if label has a policy
-	if (is_valid_policy_id(current_pol_id)) {
-		return current_pol_id;
-	}
-	//TODO: should we find a way to reset of the policy ID to zero if there is no policy?
-	return NO_POL_ID;
 }
 
 /**
- * @brief label a task with a policy id
+ * @brief label a task with a policy id. A task can have up to
+ * MAX_POL_IDS policy ids.
  *
  * @param task the task to label
  * @param policy_id the label for the task
@@ -227,91 +271,144 @@ static __always_inline void label_task(struct task_struct  *task,
                                        const unsigned char *task_name,
                                        u32                  policy_id)
 {
-	u32 current_pol_id = get_object_valid_policy_id(task, OBJECT_TYPE_TASK);
-	if (current_pol_id == policy_id) {
-		// Already correctly labeled
-		return;
-	} else if (!is_valid_policy_id(policy_id)) {
+	u64 log[3] = { (u64)task_name, (u64)task->tgid, (u64)policy_id };
+	if (!is_valid_policy_id(policy_id)) {
 		// Don't propagate invalid policy ids
-		u64 log[3] = {
-			(u64)task_name,
-			(u64)task->tgid,
-			(u64)policy_id,
-		};
 		log_generic_msg(LOG_LEVEL_TRACE, LOG_REASON_DEBUG,
 		                "Did not label task %s(%d) since %d is invalid", log,
 		                sizeof(log));
-	} else if (current_pol_id != NO_POL_ID) {
-		// Already labeled with different label
-		u64 log[4] = { (u64)task_name, (u64)task->tgid, (u64)policy_id,
-			           (u64)current_pol_id };
+		return;
+	}
+	struct seabee_task_data  new_data = { 0 };
+	struct seabee_task_data *data     = bpf_task_storage_get(
+        &task_storage, task, &new_data, BPF_LOCAL_STORAGE_GET_F_CREATE);
+	if (!data) {
+		log_generic_msg(LOG_LEVEL_ERROR, LOG_REASON_ERROR,
+		                "failed to label task %s(%d) as %d", log, sizeof(log));
+		return;
+	}
+	if (has_pol_id(&data->pol_ids, policy_id)) {
+		// Already labeled
+		return;
+	}
+	if (add_pol_id(&data->pol_ids, policy_id) < 0) {
 		log_generic_msg(
 			LOG_LEVEL_ERROR, LOG_REASON_ERROR,
-			"failed to label task %s(%d) as %d. Task already belongs to policy %d",
+			"failed to label task %s(%d) as %d. Task has too many policies",
 			log, sizeof(log));
-	} else {
-		// Label with new policy id
-		struct seabee_task_data  new_data      = { policy_id, 0 };
-		struct seabee_task_data *new_data_blob = bpf_task_storage_get(
-			&task_storage, task, &new_data, BPF_LOCAL_STORAGE_GET_F_CREATE);
-		u64 log[3] = { (u64)task_name, (u64)task->tgid, (u64)policy_id };
-		if (new_data_blob) {
-			log_generic_msg(LOG_LEVEL_DEBUG, LOG_REASON_DEBUG,
-			                "label task %s(%d) as %d", log, sizeof(log));
-		} else {
-			log_generic_msg(LOG_LEVEL_ERROR, LOG_REASON_ERROR,
-			                "failed to label task %s(%d) as %d", log,
-			                sizeof(log));
+		return;
+	}
+	log_generic_msg(LOG_LEVEL_DEBUG, LOG_REASON_DEBUG,
+	                "label task %s(%d) as %d", log, sizeof(log));
+}
+
+/**
+ * @brief label a task with every valid policy id in a set
+ *
+ * @param task the task to label
+ * @param task_name name used for logging
+ * @param pol_ids the policy ids
+ */
+static __always_inline void label_task_with_ids(struct task_struct   *task,
+                                                const unsigned char  *task_name,
+                                                const struct pol_ids *pol_ids)
+{
+#pragma unroll
+	for (int i = 0; i < MAX_POL_IDS; i++) {
+		u32 policy_id = pol_ids->ids[i];
+		if (is_valid_policy_id(policy_id)) {
+			label_task(task, task_name, policy_id);
 		}
 	}
 }
 
 /**
- * @brief label an inode with a policy id
+ * @brief label an inode with a policy id. An inode can have up to
+ * MAX_POL_IDS policy ids.
  *
  * @param dentry the dentry associated with the inode
  * @param inode the inode to label
  * @param policy_id the label to use
+ *
+ * @return 0 if the inode has the label, -1 otherwise
  */
-static __always_inline void label_inode(struct dentry *dentry,
-                                        struct inode *inode, u32 policy_id)
+static __always_inline int label_inode(struct dentry *dentry,
+                                       struct inode *inode, u32 policy_id)
 {
-	const unsigned char *name = dentry->d_name.name;
-	u32 current_pol_id = get_object_valid_policy_id(inode, OBJECT_TYPE_INODE);
-	if (current_pol_id == policy_id) {
-		// Already correctly labeled
-		return;
-	} else if (!is_valid_policy_id(policy_id)) {
+	const unsigned char *name   = dentry->d_name.name;
+	u64                  log[2] = { (u64)name, (u64)policy_id };
+	if (!is_valid_policy_id(policy_id)) {
 		// Don't propagate invalid policy ids
-		u64 log[3] = { (u64)name, (u64)policy_id };
 		log_generic_msg(LOG_LEVEL_TRACE, LOG_REASON_DEBUG,
 		                "Did not label inode %s since %d is invalid", log,
 		                sizeof(log));
-	} else if (current_pol_id != NO_POL_ID) {
-		// Has a different policy id already
-		u64 log[3] = { (u64)name, (u64)policy_id, (u64)current_pol_id };
+		return -1;
+	}
+	struct pol_ids  new_ids = { 0 };
+	struct pol_ids *ids = bpf_inode_storage_get(&inode_storage, inode, &new_ids,
+	                                            BPF_LOCAL_STORAGE_GET_F_CREATE);
+	if (!ids) {
+		log_generic_msg(LOG_LEVEL_ERROR, LOG_REASON_ERROR,
+		                "failed to label inode for %s as %d", log, sizeof(log));
+		return -1;
+	}
+	if (has_pol_id(ids, policy_id)) {
+		// Already labeled
+		return 0;
+	}
+	if (add_pol_id(ids, policy_id) < 0) {
 		log_generic_msg(
 			LOG_LEVEL_ERROR, LOG_REASON_ERROR,
-			"failed to label inode for %s as %d. Inode already belongs to policy %d",
+			"failed to label inode for %s as %d. Inode has too many policies",
 			log, sizeof(log));
-	} else {
-		// Assign new inode policy id
-		u32 *label  = bpf_inode_storage_get(&inode_storage, inode, &policy_id,
-		                                    BPF_LOCAL_STORAGE_GET_F_CREATE);
-		u64  log[2] = { (u64)name, (u64)policy_id };
-		if (label) {
-			log_generic_msg(LOG_LEVEL_TRACE, LOG_REASON_DEBUG,
-			                "label inode for '%s' as %d", log, sizeof(log));
-		} else {
-			log_generic_msg(LOG_LEVEL_ERROR, LOG_REASON_ERROR,
-			                "failed to label inode for %s as %d", log,
-			                sizeof(log));
+		return -1;
+	}
+	log_generic_msg(LOG_LEVEL_TRACE, LOG_REASON_DEBUG,
+	                "label inode for '%s' as %d", log, sizeof(log));
+	return 0;
+}
+
+/**
+ * @brief label an inode with every valid policy id in a set
+ *
+ * @param dentry the dentry associated with the inode
+ * @param inode the inode to label
+ * @param pol_ids the policy ids
+ */
+static __always_inline void label_inode_with_ids(struct dentry        *dentry,
+                                                 struct inode         *inode,
+                                                 const struct pol_ids *pol_ids)
+{
+#pragma unroll
+	for (int i = 0; i < MAX_POL_IDS; i++) {
+		u32 policy_id = pol_ids->ids[i];
+		if (is_valid_policy_id(policy_id)) {
+			label_inode(dentry, inode, policy_id);
 		}
 	}
 }
 
 /**
- * @brief label a map a with a policy id.
+ * @brief remove a policy id from an inode
+ *
+ * @param dentry the dentry associated with the inode
+ * @param inode the inode to unlabel
+ * @param policy_id the label to remove
+ */
+static __always_inline void unlabel_inode(struct dentry *dentry,
+                                          struct inode *inode, u32 policy_id)
+{
+	struct pol_ids *ids = get_inode_pol_ids(inode);
+	if (ids) {
+		remove_pol_id(ids, policy_id);
+	}
+	u64 log[2] = { (u64)dentry->d_name.name, (u64)policy_id };
+	log_generic_msg(LOG_LEVEL_TRACE, LOG_REASON_DEBUG,
+	                "unlabel inode for '%s' as %d", log, sizeof(log));
+}
+
+/**
+ * @brief label a map with a policy id.
  *
  * @param map the map to label
  * @param policy_id the id for the map
@@ -325,24 +422,39 @@ static __always_inline int label_map_with_id(struct bpf_map *map, u32 policy_id)
 		return ALLOW;
 	}
 
-	struct bpf_map_data map_data;
-	map_data.policy_id = policy_id;
-	BPF_CORE_READ_STR_INTO(&map_data.name, map, name);
+	char map_name[BPF_MAP_NAME_LEN];
+	BPF_CORE_READ_STR_INTO(&map_name, map, name);
+	u64 data[3] = { (u64)map_name, (u64)BPF_CORE_READ(map, id),
+		            (u64)policy_id };
 
-	// NOEXIST ensures that we cannot overwrite an existing map label
+	// add to an existing label
+	struct bpf_map_data *map_data = bpf_map_lookup_elem(&map_to_pol_id, &map);
+	if (map_data) {
+		if (add_pol_id(&map_data->pol_ids, policy_id) < 0) {
+			log_generic_msg(LOG_LEVEL_ERROR, LOG_REASON_ERROR,
+			                "Error: map %s(%d) has too many policies to add %d",
+			                data, sizeof(data));
+		} else {
+			log_generic_msg(LOG_LEVEL_TRACE, LOG_REASON_DEBUG,
+			                "label map %s(%d) as %d", data, sizeof(data));
+		}
+		return ALLOW;
+	}
+
+	// create a new label
+	struct bpf_map_data new_data = { 0 };
+	new_data.pol_ids.ids[0]      = policy_id;
+	BPF_CORE_READ_STR_INTO(&new_data.name, map, name);
 	long err =
-		bpf_map_update_elem(&map_to_pol_id, &map, &map_data, BPF_NOEXIST);
-
+		bpf_map_update_elem(&map_to_pol_id, &map, &new_data, BPF_NOEXIST);
 	if (err < 0) {
-		u64 data[4] = { (u64)map_data.name, (u64)BPF_CORE_READ(map, id),
-			            (u64)policy_id, (u64)err };
+		u64 err_data[4] = { (u64)map_name, (u64)BPF_CORE_READ(map, id),
+			                (u64)policy_id, (u64)err };
 		log_generic_msg(
 			LOG_LEVEL_ERROR, LOG_REASON_ERROR,
 			"Error: update elem failed map %s(%d) for policy %d, code: %d",
-			data, sizeof(data));
+			err_data, sizeof(err_data));
 	} else {
-		u64 data[3] = { (u64)map_data.name, (u64)BPF_CORE_READ(map, id),
-			            (u64)policy_id };
 		log_generic_msg(LOG_LEVEL_TRACE, LOG_REASON_DEBUG,
 		                "label map %s(%d) as %d", data, sizeof(data));
 	}
@@ -350,9 +462,9 @@ static __always_inline int label_map_with_id(struct bpf_map *map, u32 policy_id)
 }
 
 /**
- * @brief label a map automatically based the policy id of the current task.
+ * @brief label a map automatically based the policy ids of the current task.
  *
- * The label will be NO_POL_ID if task has no policy id associated with it.
+ * The map is not labeled if the task has no valid policy id.
  *
  * @param map the map to label
  *
@@ -360,7 +472,18 @@ static __always_inline int label_map_with_id(struct bpf_map *map, u32 policy_id)
  */
 static __always_inline int label_map(struct bpf_map *map)
 {
-	return label_map_with_id(map, get_task_pol_id());
+	struct pol_ids *task_ids = get_task_pol_ids();
+	if (!task_ids) {
+		return ALLOW;
+	}
+#pragma unroll
+	for (int i = 0; i < MAX_POL_IDS; i++) {
+		u32 policy_id = task_ids->ids[i];
+		if (is_valid_policy_id(policy_id)) {
+			label_map_with_id(map, policy_id);
+		}
+	}
+	return ALLOW;
 }
 
 static __always_inline int unlabel_map(struct bpf_map *map)
@@ -371,8 +494,8 @@ static __always_inline int unlabel_map(struct bpf_map *map)
 	}
 
 	// exit early if map is not tracked
-	u32 *policy_id = bpf_map_lookup_elem(&map_to_pol_id, &map);
-	if (!policy_id) {
+	struct bpf_map_data *map_data = bpf_map_lookup_elem(&map_to_pol_id, &map);
+	if (!map_data) {
 		return ALLOW;
 	}
 

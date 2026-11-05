@@ -9,9 +9,16 @@
 #include <bpf/bpf_helpers.h>
 #include "shared_rust_types.h"
 
+/**
+ * The policy ids of an object. NO_POL_ID marks a free slot.
+ */
+struct pol_ids {
+	u32 ids[MAX_POL_IDS];
+};
+
 struct seabee_task_data {
-	u32 pol_id;
-	u32 is_pinning; // treated like a bool
+	struct pol_ids pol_ids;
+	u32            is_pinning; // treated like a bool
 };
 
 struct task_storage {
@@ -30,8 +37,8 @@ struct inode_storage {
 	__uint(map_flags, BPF_F_NO_PREALLOC);
 	// must be 4 bytes
 	__type(key, u32);
-	// policy id
-	__type(value, u32);
+	// policy ids
+	__type(value, struct pol_ids);
 };
 
 struct sk_storage {
@@ -58,8 +65,8 @@ struct policy_map {
  * SeaBee data for an eBPF map
  */
 struct bpf_map_data {
-	unsigned int policy_id;
-	char         name[BPF_MAP_NAME_LEN];
+	struct pol_ids pol_ids;
+	char           name[BPF_MAP_NAME_LEN];
 };
 
 struct map_to_pol_id {
