@@ -17,7 +17,9 @@ This will always display up to date information about what cryptographic algorit
 
 example: `sudo seabeectl alg`
 
-Currently SeaBee supports RSA and ECDSA keys. We also support SHA-2 and SHA-3 message digests.
+Currently SeaBee supports RSA, ECDSA, ML-DSA and SLH-DSA keys.
+RSA and ECDSA use SHA-2 or SHA-3 message digests;
+ML-DSA and SLH-DSA sign without a separate digest.
 SeaBee also expects keys to be in `.pem` format.
 
 PQC support will be added with [issue 42](https://github.com/NationalSecurityAgency/seabee/issues/42).

@@ -3,7 +3,7 @@
 /// This file tests the local commands of seabeectl including "alg", "sign", and "verify"
 /// sign will use keys besides ECDSA or RSA since there is no reason to restrict it.
 /// However, verify mirrors the seabeectl verify process and will not allow
-/// key types besides ECDSA or RSA
+/// key types besides ECDSA, RSA, ML-DSA or SLH-DSA
 use std::fs;
 
 use crate::{command::TestCommandBuilder, create_test};
@@ -16,6 +16,10 @@ const RSA_PRIV: &str = "crypto/keys/rsa-private.pem";
 const RSA_PUB: &str = "crypto/keys/rsa-public.pem";
 const EC_PRIV: &str = "crypto/keys/ecdsa-private.pem";
 const EC_PUB: &str = "crypto/keys/ecdsa-public.pem";
+const ML_DSA_PRIV: &str = "crypto/keys/ml-dsa-65-private.pem";
+const ML_DSA_PUB: &str = "crypto/keys/ml-dsa-65-public.pem";
+const SLH_DSA_PRIV: &str = "crypto/keys/slh-dsa-sha2-128s-private.pem";
+const SLH_DSA_PUB: &str = "crypto/keys/slh-dsa-sha2-128s-public.pem";
 const SHA3: &str = "sha3-256";
 
 // invalid keys
@@ -168,6 +172,20 @@ fn seabeectl_sign_verify_rsa() -> Result<(), libtest_mimic::Failed> {
     Ok(())
 }
 
+/// ML-DSA and SLH-DSA sign the message itself, so any digest is accepted and ignored
+fn seabeectl_sign_verify_pqc() -> Result<(), libtest_mimic::Failed> {
+    // cannot have generic path due to parallelism
+    for (private, public, sig) in [
+        (ML_DSA_PRIV, ML_DSA_PUB, "sign_verify_ml_dsa.sign"),
+        (SLH_DSA_PRIV, SLH_DSA_PUB, "sign_verify_slh_dsa.sign"),
+    ] {
+        seabeectl_sign(POLICY, private, sig, SHA3, 0, "Success", "")?;
+        seabeectl_verify(POLICY, public, sig, SHA3, 0, "Verified OK", "")?;
+        fs::remove_file(sig)?;
+    }
+    Ok(())
+}
+
 pub fn tests() -> Vec<libtest_mimic::Trial> {
     vec![
         create_test!(seabeectl_alg),
@@ -177,6 +195,7 @@ pub fn tests() -> Vec<libtest_mimic::Trial> {
         create_test!(seabeectl_sign_verify_ecdsa),
         create_test!(seabeectl_sign_verify_rsa),
         create_test!(seabeectl_sign_verify_default),
+        create_test!(seabeectl_sign_verify_pqc),
         create_test!(seabeectl_verify_invalid_key_type),
         //TODO: seabeectl clean cannot be tested while SeaBee is running
         //TODO: seabeectl config cannot be tested while SeaBee is running
