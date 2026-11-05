@@ -11,6 +11,7 @@ use itertools::Itertools;
 use tracing::{debug, error, info, trace, warn};
 
 use crate::{
+    config::Config,
     constants::{self, SEABEE_ROOT_KEY_PATH},
     crypto::{SeaBeeDigest, SeaBeeKey},
     kernel_api,
@@ -35,6 +36,7 @@ impl super::SeaBeePolicy {
         &mut self,
         cmd: SocketCommand,
         maps: &SeaBeeMapHandles,
+        config: &Config,
     ) -> Result<String> {
         debug!("Got CLI Command: {cmd}");
         // prevents unnecessary cloning
@@ -54,6 +56,7 @@ impl super::SeaBeePolicy {
                 self.add_key(&request.target_path, &request.sig_path, &request.digest)?
             }
             SocketCommand::RemoveKey(request) => self.remove_key(request)?,
+            SocketCommand::ShowConfig => config.to_yaml()?,
             SocketCommand::Shutdown(request) => self.shutdown(&request)?,
         };
         info!("{}", info_string);
@@ -494,7 +497,7 @@ pub fn runtime_policy_update(sb: &mut crate::SeaBee) -> Result<()> {
 
             // do policy update
             let result = match get_command_from_stream(&mut stream) {
-                Ok(cmd) => sb.policy.handle_cli_command(cmd, &sb.maps),
+                Ok(cmd) => sb.policy.handle_cli_command(cmd, &sb.maps, &sb.config),
                 Err(e) => Err(e),
             };
             write_result_to_stream(result, &mut stream);

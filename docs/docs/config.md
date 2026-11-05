@@ -8,6 +8,7 @@ SeaBee configuration is mostly explained through the help menu with
 `seabee --help`
 
 The SeaBee configuration cannot be updated while SeaBee is running.
+Use `seabeectl show-config` to see the configuration SeaBee is running with.
 
 Some of the SeaBee configuration options overlap with SeaBee policy options.
 This is because SeaBee uses the same underlying mechanisms to protect itself

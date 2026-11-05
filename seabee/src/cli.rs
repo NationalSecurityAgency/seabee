@@ -4,7 +4,7 @@ use std::collections::HashSet;
 
 use anyhow::{anyhow, Result};
 use clap::{Parser, ValueEnum};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::{policy::policy_file::PolicyConfig, utils};
 use bpf::logging::{EventType, LogLevel};
@@ -71,12 +71,13 @@ pub fn args_from_file(config_path: &str) -> Result<Args> {
 /// the [configure] function to work.
 ///
 /// For CLAP documentation refer to <https://docs.rs/clap/>
-#[derive(Parser, Clone, Debug, PartialEq, Deserialize)]
+#[derive(Parser, Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[command(version, about = None, long_about = None)] // allows -v version command
 #[serde(deny_unknown_fields)]
 pub struct Args {
     /// Absolute or relative path to a config file
     #[arg(short, long)]
+    #[serde(skip_serializing)]
     config: Option<String>,
     /// Select the granularity of logs
     #[arg(short, long)]
@@ -181,6 +182,34 @@ impl From<Args> for crate::config::Config {
     }
 }
 
+// translates a Config back to Args, used to show the running config
+impl From<&crate::config::Config> for Args {
+    fn from(config: &crate::config::Config) -> Self {
+        Self {
+            config: None,
+            log_level: LogLevelArg::from_repr(config.log_level as u32),
+            map_access: Some(config.policy_config.map_access),
+            include_pins: Some(config.policy_config.include_pins),
+            sigint: Some(config.sigint),
+            kmod: Some(config.kmod),
+            file_write_access: Some(config.policy_config.file_write_access),
+            ptrace_access: Some(config.policy_config.ptrace_access),
+            exclude: LogTypeCLI::value_variants()
+                .iter()
+                .filter(|log_type| {
+                    log_type
+                        .to_event_types()
+                        .iter()
+                        .all(|event_type| config.log_filter.contains(event_type))
+                })
+                .cloned()
+                .collect(),
+            verify_policy: Some(config.verify_policy),
+            verify_keys: Some(config.verify_keys),
+        }
+    }
+}
+
 // translates Args to SeaBee base policy config
 impl From<Args> for PolicyConfig {
     fn from(args: Args) -> Self {
@@ -233,7 +262,17 @@ impl std::fmt::Display for SecurityLevel {
 
 /// The least severe log type to output
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, ValueEnum)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Default,
+    Deserialize,
+    Serialize,
+    PartialEq,
+    ValueEnum,
+    strum_macros::FromRepr,
+)]
 enum LogLevelArg {
     off,
     error,
@@ -251,7 +290,7 @@ impl From<LogLevelArg> for LogLevel {
 }
 
 // Used to generate CLI for log filtering
-#[derive(Clone, Debug, Deserialize, PartialEq, Eq, Hash, ValueEnum)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq, Hash, ValueEnum)]
 pub enum LogTypeCLI {
     File,
     Unmount,
@@ -285,6 +324,23 @@ impl LogTypeCLI {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    #[test]
+    fn test_running_config_round_trip() {
+        let mut args = Args::default();
+        args.apply(
+            serde_yaml::from_str("sigint: true\nlog_level: debug\nexclude: [Kmod, Ptrace]")
+                .unwrap(),
+        );
+        let config: crate::config::Config = args.into();
+
+        let yaml = config.to_yaml().unwrap();
+        let mut parsed = Args::default();
+        parsed.apply(serde_yaml::from_str(&yaml).unwrap());
+        assert_eq!(crate::config::Config::from(parsed), config);
+    }
+
     #[test]
     fn test_unknown_config_option() {
         let bad_config_str = "bad_option: bad";

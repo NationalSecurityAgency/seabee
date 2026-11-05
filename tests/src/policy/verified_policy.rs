@@ -62,6 +62,7 @@ pub fn tests() -> Vec<Trial> {
     vec![
         create_test!(daemon_status::daemon_status),
         create_test!(daemon_status::daemon_deny_tid_sigkill),
+        create_test!(daemon_status::daemon_show_config),
         create_test!(shared::no_starting_keys_policies),
         create_test!(add_ecdsa_key),
         create_test!(add_signed_policy),
