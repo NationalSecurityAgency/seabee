@@ -6,21 +6,21 @@ SeaBee needs root or 'sudo' or run.
 
 We specifically run tests to ensure support on the following distributions:
 
-* Fedora 41, 42, 43
-* RHEL/Rocky 9
-* Ubuntu 22.04, 24.04
+* Fedora 43, 44, 45
+* RHEL/Rocky 9, 10
+* Ubuntu 22.04, 24.04, 26.04
 
 However, in theory, SeaBee should work on any Linux kernel 5.14+ since we do not rely on any features added after 5.14.
 
-## Fedora 41, 42, 43
+## Fedora 43, 44, 45
 
 Should work out of the box
 
-## RHEL/Rocky 9
+## RHEL/Rocky 9, 10
 
 Should work out of the box
 
-## Ubuntu 22.04, 24.04
+## Ubuntu 22.04, 24.04, 26.04
 
 As of Ubuntu 24.04, Ubuntu has the kernel config option `CONFIG_BPF_LSM`, but it does not enable BPF LSM by default.
 We must enable it in order for this code to work.
