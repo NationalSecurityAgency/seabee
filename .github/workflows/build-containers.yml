@@ -28,6 +28,7 @@ jobs:
         distro:
           - { name: "fedora-43", dockerfile: "ci/fedora-43.Dockerfile" }
           - { name: "fedora-44", dockerfile: "ci/fedora-44.Dockerfile" }
+          - { name: "fedora-45", dockerfile: "ci/fedora-45.Dockerfile" }
           - { name: "ubuntu-jammy", dockerfile: "ci/ubuntu-jammy.Dockerfile" }
           - { name: "ubuntu-noble", dockerfile: "ci/ubuntu-noble.Dockerfile" }
           - { name: "ubuntu-resolute", dockerfile: "ci/ubuntu-resolute.Dockerfile" }
@@ -35,10 +36,10 @@ jobs:
           - { name: "rocky-10", dockerfile: "ci/rocky-10.Dockerfile" }
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}

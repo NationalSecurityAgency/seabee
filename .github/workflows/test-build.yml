@@ -16,6 +16,7 @@ jobs:
         distro:
           - fedora-43
           - fedora-44
+          - fedora-45
           - ubuntu-jammy
           - ubuntu-noble
           - ubuntu-resolute
@@ -27,7 +28,7 @@ jobs:
 
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Run `make release`
         run: make release
