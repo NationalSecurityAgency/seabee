@@ -44,7 +44,7 @@ rustfmt:
     - cargo fmt -- --check
 
 mega-linter:
-  image: "${DOCKER_MIRROR}oxsecurity/megalinter:v7.12.0"
+  image: "${DOCKER_MIRROR}oxsecurity/megalinter:v9.4.0"
   script:
     - "true"
   variables:

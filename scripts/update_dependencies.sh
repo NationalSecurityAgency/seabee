@@ -4,7 +4,7 @@ set -e
 TOP_DIR=$(dirname "$(dirname "$(realpath "$0" || true)")")
 
 ASCIINEMA_VERSION=2.4.0
-POETRY_VERSION=1.8.3
+POETRY_VERSION=1.8.5
 PYTHON_VERSION=3.9 # Minimum python version
 
 ASCIINEMA=asciinema

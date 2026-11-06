@@ -3,7 +3,7 @@ set -Ee
 
 TOP_DIR=$(dirname "$(dirname "$(realpath "$0" || true)")")
 
-DOCKER_VERSION=24.0.7
+DOCKER_VERSION=29.0.0
 DOCKER="${DOCKER:=0}"
 USE_APT=0
 USE_DNF=0
@@ -36,7 +36,7 @@ os_check() {
     DISTRO="rhel"
     # Install EPEL
     # https://www.redhat.com/en/blog/whats-epel-and-how-do-i-use-it
-    dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+    dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-"$(rpm -E %rhel)".noarch.rpm
     # Enable CodeReady Builder for Doxygen
     dnf config-manager --set-enabled crb
     ;;
