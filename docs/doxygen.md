@@ -1,5 +1,5 @@
 # Welcome
 
-The Doxygen documentation is contained [here](seabee_8bpf_8c.html).
+The Doxygen documentation starts at [seabee.bpf.c](seabee_8bpf_8c.html).
 
-The Rust and Markdown documentation is contained [here](../../index.html).
+The Rust and Markdown documentation is on the [SeaBee documentation home page](../../index.html).
