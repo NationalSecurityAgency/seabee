@@ -95,7 +95,7 @@ pub fn start_test_tool(level: SecurityLevel) -> Result<Child> {
     // add policy
     Command::new(SEABEECTL_EXE)
         .args([
-            "update",
+            "apply",
             "-t",
             &utils::str_to_abs_path_str(policy_file)?,
             "-s",

@@ -123,12 +123,12 @@ For this command you will have to choose how to identify the policy
 - by name with `name`
 - by a policy file with `file`
 
-## `seabeectl update`
+## `seabeectl add`
 
-Takes a policy file as an argument and adds it to SeaBee if
-a policy with the same name does not exist or updates a policy if it does exist.
+Takes a policy file as an argument and adds it to SeaBee.
+This fails if a policy with the same name already exists.
 
-example: `sudo seabeectl update -t tests/policies/sample_policy.yaml -s signature.sign`
+example: `sudo seabeectl add -t tests/policies/sample_policy.yaml -s signature.sign`
 
 note: this example may fail if you have not yet done `sudo mkdir /etc/test_seabee_policy`
 
@@ -140,13 +140,21 @@ If `--verify-policy` is enabled, which is necessary for security, then this comm
 requires a signature for the policy. The [crypto docs](./crypto.md) explains how to sign
 and load a SeaBee policy. Basically, you need to create a public key pair, add the public
 key to SeaBee with `seabeectl add-key`, sign the policy with `seabeectl sign`, then
-add the policy with `seabeectl update`.
+add the policy with `seabeectl add`.
 
 If the signature was not generated using the default message digest (SHA3-256), then
 you will need to use the `-d` option to specify the digest algorithm.
 This ensures that the signature can be properly verified.
 
 All files or directories specified in a policy must exist on policy load.
+
+## `seabeectl update`
+
+Takes a policy file as an argument and updates the existing policy with the same name.
+This fails if no policy with the same name exists.
+It uses the same options as [`seabeectl add`](#seabeectl-add).
+
+example: `sudo seabeectl update -t tests/policies/sample_policy.yaml -s signature.sign`
 
 The scope of a policy cannot be changed via a policy update.
 This is partially due to implementation limitations, but also from intuition.
@@ -158,6 +166,15 @@ This prevents an attacker from trying to load an older version of the same polic
 which may be less secure. It ensures that a new signature is always needed to
 update policy.
 You can view the current version number for a policy with with `seabeectl show` or `seabeectl list`
+
+## `seabeectl apply`
+
+Takes a policy file as an argument and adds it to SeaBee if
+a policy with the same name does not exist or updates a policy if it does exist.
+It uses the same options as [`seabeectl add`](#seabeectl-add), and the rules for
+[`seabeectl add`](#seabeectl-add) and [`seabeectl update`](#seabeectl-update) still apply.
+
+example: `sudo seabeectl apply -t tests/policies/sample_policy.yaml -s signature.sign`
 
 ## `seabeectl remove`
 
@@ -181,7 +198,7 @@ version: 1
 If a policy is removed and then re-added, any objects specified in the policy will no longer
 be protected unless they are recreated. This means it is necessary
 to restart the application after the policy has been added in order for the policy to be enforced.
-If your goal is to change protections on files, then `seabeectl update` is preferable to `remove` and `udpate`.
+If your goal is to change protections on files, then `seabeectl update` is preferable to `remove` and `add`.
 If your goal is to change protections on processes or eBPF maps, then the processes and maps will need to
 be created after the new policy takes effect.
 

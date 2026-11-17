@@ -183,7 +183,7 @@ instructions:
   - !Command
     command: "# Finally add the policy"
   - !Command
-    command: sudo seabeectl update -t tests/policies/sample_policy.yaml -s signature.sign
+    command: sudo seabeectl add -t tests/policies/sample_policy.yaml -s signature.sign
   - !Command
     command: ""
   - !Command

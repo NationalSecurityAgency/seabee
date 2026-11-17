@@ -30,7 +30,7 @@ We don't have any policies yet, so lets add one. Lets ask seabeectl for help: `s
 
 ![sudo seabeectl --help](./assets/images/tutorial/seabeectl-help.png)
 
-It looks like the command we need is called `update`. Lets find out more: `sudo seabeectl update --help`
+It looks like the command we need is called `add`. Lets find out more: `sudo seabeectl add --help`
 
 ![sudo seabeectl update --help](./assets/images/tutorial/seabeectl-update-help.png)
 
@@ -67,7 +67,7 @@ This file has come comments to help you understand what it does.
 Normally policy files would target an eBPF application,
 but for this tutorial we will use the `vi` editor for demonstration.
 
-add the policy: `sudo seabeectl update -t tests/policies/sample_policy.yaml`
+add the policy: `sudo seabeectl add -t tests/policies/sample_policy.yaml`
 
 ![File /etc/test_seabee_policy does not exist](./assets/images/tutorial/does-not-exist.png)
 
@@ -80,7 +80,7 @@ See [issue #35](https://github.com/NationalSecurityAgency/seabee/issues/35) for 
 
 Fortunately, the error message gives us some ideas for how to resolve this issue: `sudo mkdir /etc/test_seabee_policy`
 
-Now try again: `sudo seabeectl update -t tests/policies/sample_policy.yaml`
+Now try again: `sudo seabeectl add -t tests/policies/sample_policy.yaml`
 
 ![sudo seabeectl update -t tests/policies/sample_policy.yaml](./assets/images/tutorial/update-verify-fail.png)
 
@@ -153,7 +153,7 @@ We can check that our key was added with `sudo seabeectl list-keys`. The key wit
 
 Now that we have a key added, we can finally add our SeaBee policy.
 
-`sudo seabeectl update -t tests/policies/sample_policy.yaml -s signature.sign`
+`sudo seabeectl add -t tests/policies/sample_policy.yaml -s signature.sign`
 
 ![Added seabee test policy](./assets/images/tutorial/added-test-policy.png)
 
@@ -341,7 +341,7 @@ sudo seabeectl add-key -t rsa-public-key.pem
 sudo seabeectl list-keys
 
 # Adding a policy
-sudo seabeectl update -t tests/policies/sample_policy.yaml -s signature.sign
+sudo seabeectl add -t tests/policies/sample_policy.yaml -s signature.sign
 sudo seabeectl list
 
 # Removing a policy

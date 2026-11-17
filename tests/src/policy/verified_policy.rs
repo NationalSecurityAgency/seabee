@@ -15,7 +15,7 @@ fn add_ecdsa_key() -> Result<(), Failed> {
 }
 
 fn add_signed_policy() -> Result<(), Failed> {
-    shared::update_policy_signed(V1, shared::V1_ECDSA, Expected::Success)?;
+    shared::add_policy_signed(V1, shared::V1_ECDSA, Expected::Success)?;
     shared::list_policies(1)?;
     shared::policies_on_disk(1)
 }
@@ -43,7 +43,7 @@ fn remove_policy() -> Result<(), Failed> {
 }
 
 fn no_add_policy_unsigned() -> Result<(), Failed> {
-    shared::update_policy_unsigned(V1, Expected::Error)?;
+    shared::add_policy_unsigned(V1, Expected::Error)?;
     shared::list_policies(0)?;
     shared::policies_on_disk(0)
 }
