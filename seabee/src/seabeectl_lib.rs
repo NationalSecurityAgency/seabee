@@ -93,14 +93,24 @@ pub enum SocketCommand {
     /// Display a single loaded policy
     #[command(subcommand)]
     Show(ObjIdentifier),
-    /// Add or update a policy from a path.
+    /// Add a new policy from a path.
     ///
-    /// If the name of the policy already exists, SeaBee will
-    /// attempt to update. Otherwise SeaBee will add a new policy.
+    /// Fails if a policy with the same name already exists.
+    /// If SeaBee has verification enabled, then a signature will be needed as well.
+    Add(SignedRequestInfo),
+    /// Update an existing policy from a path.
+    ///
+    /// Fails if no policy with the same name exists.
     /// You cannot change the policy scope via a policy update.
     /// You must increment policy version for update to be accepted.
     /// If SeaBee has verification enabled, then a signature will be needed as well.
     Update(SignedRequestInfo),
+    /// Add or update a policy from a path.
+    ///
+    /// If the name of the policy already exists, SeaBee will
+    /// attempt to update. Otherwise SeaBee will add a new policy.
+    /// The same rules as `add` and `update` apply.
+    Apply(SignedRequestInfo),
     /// Remove an existing policy with a remove request.
     ///
     /// A remove request is a yaml document with only the target policy name and version.
@@ -157,8 +167,14 @@ impl std::fmt::Display for SocketCommand {
         match self {
             SocketCommand::List => write!(f, "List"),
             SocketCommand::Show(ident) => write!(f, "Show: {ident}"),
+            SocketCommand::Add(add_info) => {
+                write!(f, "Add: {}", add_info.target_path.display())
+            }
             SocketCommand::Update(update_info) => {
                 write!(f, "Update: {}", update_info.target_path.display())
+            }
+            SocketCommand::Apply(apply_info) => {
+                write!(f, "Apply: {}", apply_info.target_path.display())
             }
             SocketCommand::Remove(remove_info) => {
                 write!(f, "Remove: {}", remove_info.target_path.display())

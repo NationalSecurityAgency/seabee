@@ -132,10 +132,11 @@ pub fn add_key_signed(key: &str, sig: &str, expected: Expected) -> Result<(), Fa
         .test()
 }
 
-pub fn update_policy_unsigned(policy: &str, expected: Expected) -> Result<(), Failed> {
+/// Runs `seabeectl add`, `seabeectl update`, or `seabeectl apply` without a signature
+fn policy_command_unsigned(command: &str, policy: &str, expected: Expected) -> Result<(), Failed> {
     TestCommandBuilder::default()
         .program(SEABEECTL_EXE)
-        .args(&["update", "-t", &str_to_abs_path_str(policy)?])
+        .args(&[command, "-t", &str_to_abs_path_str(policy)?])
         .expected_rc(expected.rc())
         .expected_stdout(expected.out_text())
         .expected_stderr(expected.err_text())
@@ -143,11 +144,17 @@ pub fn update_policy_unsigned(policy: &str, expected: Expected) -> Result<(), Fa
         .test()
 }
 
-pub fn update_policy_signed(policy: &str, sig: &str, expected: Expected) -> Result<(), Failed> {
+/// Runs `seabeectl add`, `seabeectl update`, or `seabeectl apply` with a signature
+fn policy_command_signed(
+    command: &str,
+    policy: &str,
+    sig: &str,
+    expected: Expected,
+) -> Result<(), Failed> {
     TestCommandBuilder::default()
         .program(SEABEECTL_EXE)
         .args(&[
-            "update",
+            command,
             "-t",
             &str_to_abs_path_str(policy)?,
             "-s",
@@ -158,6 +165,26 @@ pub fn update_policy_signed(policy: &str, sig: &str, expected: Expected) -> Resu
         .expected_stderr(expected.err_text())
         .build()?
         .test()
+}
+
+pub fn add_policy_unsigned(policy: &str, expected: Expected) -> Result<(), Failed> {
+    policy_command_unsigned("add", policy, expected)
+}
+
+pub fn add_policy_signed(policy: &str, sig: &str, expected: Expected) -> Result<(), Failed> {
+    policy_command_signed("add", policy, sig, expected)
+}
+
+pub fn update_policy_unsigned(policy: &str, expected: Expected) -> Result<(), Failed> {
+    policy_command_unsigned("update", policy, expected)
+}
+
+pub fn update_policy_signed(policy: &str, sig: &str, expected: Expected) -> Result<(), Failed> {
+    policy_command_signed("update", policy, sig, expected)
+}
+
+pub fn apply_policy_signed(policy: &str, sig: &str, expected: Expected) -> Result<(), Failed> {
+    policy_command_signed("apply", policy, sig, expected)
 }
 
 pub fn remove_policy_unsigned(policy: &str, expected: Expected) -> Result<(), Failed> {

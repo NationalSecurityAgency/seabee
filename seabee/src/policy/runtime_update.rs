@@ -43,7 +43,15 @@ impl super::SeaBeePolicy {
         let output = match cmd {
             SocketCommand::List => self.list_policy(),
             SocketCommand::Show(policy) => self.show_policy(policy)?,
-            SocketCommand::Update(request) => self.handle_update_command(request, maps)?,
+            SocketCommand::Add(request) => {
+                self.handle_policy_command(request, PolicyAction::Add, maps)?
+            }
+            SocketCommand::Update(request) => {
+                self.handle_policy_command(request, PolicyAction::Update, maps)?
+            }
+            SocketCommand::Apply(request) => {
+                self.handle_policy_command(request, PolicyAction::Apply, maps)?
+            }
             SocketCommand::Remove(request) => {
                 self.remove_policy(request, maps)?;
                 "Success".to_owned()
@@ -104,14 +112,22 @@ impl super::SeaBeePolicy {
         Ok(policy.to_string())
     }
 
-    // Processes an update command from seabeectl
-    fn handle_update_command(
+    // Processes an add, update, or apply command from seabeectl
+    fn handle_policy_command(
         &mut self,
         request: SignedRequestInfo,
+        action: PolicyAction,
         maps: &SeaBeeMapHandles,
     ) -> Result<String> {
         // Get policy
         let mut new_policy = fs_api::generate_policy_from_yaml(&request.target_path)?;
+
+        // Check if the request may add or update this policy
+        check_policy_action(
+            action,
+            &new_policy.name,
+            self.policies.contains_key(&new_policy.name),
+        )?;
 
         // Do policy update
         match self.policies.get(&new_policy.name) {
@@ -458,6 +474,34 @@ impl super::SeaBeePolicy {
     }
 }
 
+/// How a policy request treats an existing policy with the same name
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum PolicyAction {
+    /// Only add a new policy
+    Add,
+    /// Only update an existing policy
+    Update,
+    /// Add or update depending on whether the policy exists
+    Apply,
+}
+
+/// Checks that a policy request is allowed given whether a policy with the same name exists
+///
+/// Errors
+/// - [PolicyAction::Add] and a policy with the same name exists
+/// - [PolicyAction::Update] and no policy with the same name exists
+fn check_policy_action(action: PolicyAction, name: &str, exists: bool) -> Result<()> {
+    match (action, exists) {
+        (PolicyAction::Add, true) => Err(anyhow!(
+            "a policy named '{name}' already exists. Use 'seabeectl update' to update it or 'seabeectl apply' to add or update."
+        )),
+        (PolicyAction::Update, false) => Err(anyhow!(
+            "no policy named '{name}' exists. Use 'seabeectl add' to add it or 'seabeectl apply' to add or update."
+        )),
+        _ => Ok(()),
+    }
+}
+
 fn get_command_from_stream(stream: &mut UnixStream) -> Result<SocketCommand> {
     let mut reader = std::io::BufReader::new(stream);
     let mut input = String::new();
@@ -506,4 +550,43 @@ pub fn runtime_policy_update(sb: &mut crate::SeaBee) -> Result<()> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_add_new_policy() {
+        assert!(check_policy_action(PolicyAction::Add, "test-policy", false).is_ok());
+    }
+
+    #[test]
+    fn test_add_existing_policy_fails() {
+        let err = check_policy_action(PolicyAction::Add, "test-policy", true).unwrap_err();
+        assert!(err.to_string().contains("'test-policy' already exists"));
+    }
+
+    #[test]
+    fn test_update_existing_policy() {
+        assert!(check_policy_action(PolicyAction::Update, "test-policy", true).is_ok());
+    }
+
+    #[test]
+    fn test_update_new_policy_fails() {
+        let err = check_policy_action(PolicyAction::Update, "test-policy", false).unwrap_err();
+        assert!(err
+            .to_string()
+            .contains("no policy named 'test-policy' exists"));
+    }
+
+    #[test]
+    fn test_apply_new_policy() {
+        assert!(check_policy_action(PolicyAction::Apply, "test-policy", false).is_ok());
+    }
+
+    #[test]
+    fn test_apply_existing_policy() {
+        assert!(check_policy_action(PolicyAction::Apply, "test-policy", true).is_ok());
+    }
 }

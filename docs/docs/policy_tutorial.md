@@ -298,7 +298,7 @@ config: # leave as default
 
 - Sign the policy: `sudo seabeectl sign -t kubearmor-simple-seabee-policy.yaml -k rsa-private-key.pem`
 - Start up SeaBee: `systemctl start test_seabee`
-- Add the policy: `sudo seabeectl update -t kubearmor-simple-seabee-policy.yaml -s signature.sign`
+- Add the policy: `sudo seabeectl add -t kubearmor-simple-seabee-policy.yaml -s signature.sign`
 
 > Note: if this isn't working, you may need to create a key pair
 > and add a public verification key to SeaBee.
